@@ -3,9 +3,9 @@ class Config:
         self.configs = {}
     
     def set(self, key, value):
-        self.configs['key'] = value
+        self.configs[key] = value
 
     def get(self, key):
-        return self.configs['key']
+        return self.configs[key]
 
 config = Config()
