@@ -1,7 +1,7 @@
-from core.register import register_controller
+from core.register import route
 
+@route('main', 'm')
 class Main:
     def main(self):
         print 'wazzaa'
 
-register_controller(Main, 'main', 'm')
