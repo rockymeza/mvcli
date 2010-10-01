@@ -54,9 +54,6 @@ def parse_args(argv):
     >>> parse_args(['foo'])
     ({}, ['foo'], [])
 
-    >>> parse_args(['-foo'])
-    ({}, [], ['foo'])
-
     >>> parse_args(['--foo'])
     ({}, [], ['foo'])
 
@@ -65,6 +62,10 @@ def parse_args(argv):
 
     >>> parse_args(['file', '-a', '-b', '-c', 'arg'])
     ({'c': 'arg'}, ['file'], ['a', 'b'])
+
+    >>> parse_args(['-xzf', 'foo'])
+    ({'f': 'foo'}, [], ['x', 'z'])
+
 
     """
     # Yay, excuse to use the doctest module.
@@ -95,7 +96,8 @@ def parse_args(argv):
             else:
                 # a unix-style option. don't do anything now,
                 # we don't know if we've got an argument yet
-                look_behind_key = arg[1:]
+                options.extend(arg[1:-1])
+                look_behind_key = arg[-1]
         else:
             # this is not an option, so it's either a unix argument or a file
             if look_behind_key:
