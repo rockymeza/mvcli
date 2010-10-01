@@ -108,3 +108,29 @@ def parse_args(argv):
         options.append(look_behind_key)
 
     return (kwargs, files, options)
+
+# rocky's attempt
+import re
+def parse_flags(argv):
+    options = {}
+    flags = []
+    args = []
+
+    while len(argv) > 0:
+        arg = argv.pop(0)
+        match = re.match('^--([a-z0-9_]+)(?:=(.*?))?$', arg) or re.match('^-([a-z0-9])(?:=(.*?))?$', arg)
+        if match:
+            if len(match.groups()) == 2 and match.group(2):
+                options[match.group(1)] = match.group(2)
+            else: 
+                flags.append(match.group(1))
+        else:
+            args.append(arg)
+    
+    return (options, flags, args)
+
+
+
+
+
+
