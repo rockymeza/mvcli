@@ -1,15 +1,16 @@
-class Config:
+class Request:
     """
-    Config Class is a container for the configuration settings that the core classes use
+    Request Class is a container for the request, it holds all pertinent data
+    and should be available to every controller and view
     """
     def __init__(self):
         self.dictionary = {}
 
     def __getitem__(self, key):
         """
-        Returns a vlue from the config dictionary based on the key
-
-        If that key does not exist in the dictionary, it will return None
+        Returns a value from the request dictionary based on the key
+        
+        If that key does not exist, it will return None
         """
         if key in self.dictionary:
             return self.dictionary[key]
@@ -23,5 +24,6 @@ class Config:
         If a value for that key already exists, it will be overwritten
         """
         self.dictionary[key] = value
+        
+request = Request()        
 
-config = Config()
