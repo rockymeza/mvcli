@@ -46,10 +46,12 @@ class Delegator:
         else:
             print "ControllerNotFoundError: That does not exist, better error handling to come soon"
 
-def parse_args(argv):
+def parse_args(argv, takes_args = []): 
     """
-    Parse a list of GNU or Unix style options, returning a tuple
-    of (kwargs, files, options)
+    Parse a list of GNU or Unix style options, returning a tuple of
+    (kwargs, files, options). takes_args is an iterable of strings
+    or compiled regular expressions -- if an option is in here,
+    it will consume an argument, otherwise it is treated as a boolean flag.
 
     >>> parse_args(['foo'])
     ({}, ['foo'], [])
@@ -57,58 +59,53 @@ def parse_args(argv):
     >>> parse_args(['--foo'])
     ({}, [], ['foo'])
 
-    >>> parse_args(['-a', 'foo', 'baz', '-b', '--foo=b=ar'])
+    >>> parse_args(['-a', 'foo', 'baz', '-b', '--foo=b=ar'], 'a')
     ({'a': 'foo', 'foo': 'b=ar'}, ['baz'], ['b'])
 
     >>> parse_args(['file', '-a', '-b', '-c', 'arg'])
-    ({'c': 'arg'}, ['file'], ['a', 'b'])
+    ({}, ['file', 'arg'], ['a', 'b', 'c'])
 
     >>> parse_args(['-xzf', 'foo'])
+    ({}, ['foo'], ['x', 'z', 'f'])
+
+    >>> parse_args(['-xzf', 'foo'], ['f'])
     ({'f': 'foo'}, [], ['x', 'z'])
 
+    >>> parse_args(['-xzf', 'foo', 'bar'], 'xf')
+    ({'x': 'foo', 'f': 'bar'}, [], ['z'])
+    
+    >>> parse_args(['--foo', 'bar'], ['foo'])
+    ({'foo': 'bar'}, [], [])
+
+    >>> parse_args(['--foo', 'bar'])
+    ({}, ['bar'], ['foo'])
 
     """
-    # Yay, excuse to use the doctest module.
-    # I'm slight dissapointed, it only compares strings, so
-    # if you expect {1:'a', 2:'b'}, but get {2:'b', 1:'a'},
-    # it fails.
 
     kwargs = {}
     files = []
     options = []
-    #ugly!
-    look_behind_key = None
 
-    for arg in argv:
-        if arg[0] == '-':
-            if look_behind_key:
-                # this is an option, and an option can't be the value
-                # for an argument
-                options.append(look_behind_key)
-                look_behind_key = None
-            if len(arg) > 1 and arg[1] == '-':
-                # gnu-style option
-                (key, ignore, value) = arg[2:].partition('=')
-                if value:
-                    kwargs[key] = value
+    takes_args = MatcherList(takes_args)
+
+    while argv:
+        arg = argv.pop(0)
+        if arg.startswith('--'):
+            # gnu-style option
+            (key, ignore, value) = arg[2:].partition('=')
+            if value or (key in takes_args):
+                kwargs[key] = value or argv.pop(0)
+            else:
+                options.append(key)
+        elif arg.startswith('-'):
+            # unix-style option
+            for letter in arg[1:]:
+                if letter in takes_args:
+                    kwargs[letter] = argv.pop(0)
                 else:
-                    options.append(key)
-            else:
-                # a unix-style option. don't do anything now,
-                # we don't know if we've got an argument yet
-                options.extend(arg[1:-1])
-                look_behind_key = arg[-1]
+                    options.append(letter)
         else:
-            # this is not an option, so it's either a unix argument or a file
-            if look_behind_key:
-                # args is [... -look_behind_key, arg, ...]
-                kwargs[look_behind_key] = arg
-                look_behind_key = None
-            else:
-                files.append(arg)
-    if look_behind_key:
-        options.append(look_behind_key)
-
+            files.append(arg)
     return (kwargs, files, options)
 
 # rocky's attempt
@@ -131,8 +128,35 @@ def parse_flags(argv):
     
     return (options, flags, args)
 
+class MatcherList(list):
+    """
+    A list of patterns. Use 'in' to match.
 
+    >>> x = MatcherList(['a', 'b'])
+    >>> 'a' in x
+    True
+    >>> 'c' in x
+    False
+    >>> 'a' in MatcherList()
+    False
+    >>> import re
+    >>> x = MatcherList(['d', re.compile('a|b')])
+    >>> 'a' in x
+    True
+    >>> 'c' in x
+    False
+    >>> 'd' in x
+    True
+    """
 
-
-
-
+    def __contains__(self, item):
+        for i in self:
+            if item == i:
+                return True
+            try:
+                match = i.match(item)
+                if match:
+                    return True
+            except AttributeError:
+                pass
+        return False
