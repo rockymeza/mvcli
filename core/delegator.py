@@ -151,11 +151,8 @@ class MatcherList(list):
 
     def __contains__(self, item):
         for i in self:
-            if item == i:
-                return True
             try:
-                match = i.match(item)
-                if match:
+                if item == i or i.match(item):
                     return True
             except AttributeError:
                 pass
