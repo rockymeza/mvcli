@@ -1,7 +1,7 @@
-from core.register import route
+from core.register import controller
 
-@route('main', 'm')
+@controller('main', 'm')
 class Main:
     def main(self):
-        print 'wazzaa'
+        print self.request['controller'], self.request['action']
 
