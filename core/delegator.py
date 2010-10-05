@@ -11,11 +11,16 @@ class Delegator:
     def __init__(self, argv):
         self.filename = argv.pop(0)
         self.argv = argv
-        self.delegate(self.route())
+
+    def run(self):
+        return self.delegate(self.route())
 
     def route(self):
         """
         Creates a Request object out of argv
+        >>> x = Delegator(['filename', 'controller', 'action', 'param1'])
+        >>> x.route()
+        {'action': 'action', 'controller': 'controller', 'parameters': ['param1']}
         """
         request = Request()
         request['controller'] = config['default_controller']
