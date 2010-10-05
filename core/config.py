@@ -17,10 +17,7 @@ class Config:
         >>> config[12] == None
         True
         """
-        if key in self.dictionary:
-            return self.dictionary[key]
-        else:
-            return None
+        return self.dictionary.get(key)
 
     def __setitem__(self, key, value):
         """
