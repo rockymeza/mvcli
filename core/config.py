@@ -31,4 +31,21 @@ class Config:
         """
         self.dictionary[key] = value
 
+    def default(self, key, value):
+        """
+        Stores a value in the dictionary using a key
+        
+        If a value for that key already exists, it will not be overwritten
+        >>> config.default('x', 1)
+        >>> config['x']
+        1
+        >>> config['y'] = 2
+        >>> config['y']
+        2
+        >>> config.default('y', 'other value')
+        >>> config['y']
+        2
+        """
+        if not key in self.dictionary:
+            self.dictionary[key] = value
 config = Config()
