@@ -3,8 +3,26 @@ class Config:
     Config Class is a container for the configuration settings that the core classes use
     >>> config = Config()
     """
-    def __init__(self):
-        self.dictionary = {}
+    def __init__(self, dictionary = {}):
+        """
+        Instantiates an instance of the Config class.
+
+        It can accept a dictionary for the default configurations
+
+        >>> config1 = Config()
+        >>> config2 = Config({'key1': 'value1', 'key2': 'value2'})
+        >>> config2['key1']
+        'value1'
+        >>> config2['nonexistent_key'] == None
+        True
+        >>> config2.default('key1', 'other value')
+        >>> config2['key1']
+        'value1'
+        >>> config2['key2'] = 'new value'
+        >>> config2['key2']
+        'new value'
+        """
+        self.dictionary = dictionary
 
     def __getitem__(self, key):
         """
