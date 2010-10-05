@@ -1,12 +1,8 @@
-controllers = {}
-views = {}
-
 def register_controller(controller, *aliases):
     """
     Register a controller in the controllers dictionary.
     """
-    for alias in aliases:
-        controllers[alias] = controller
+    controller.responds_to = aliases
 
 def controller(*routes):
     """

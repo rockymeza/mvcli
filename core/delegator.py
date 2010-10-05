@@ -1,55 +1,40 @@
-from core.config import config
-from core.request import Request
-from controller import *
-from core.register import controllers, views
+from request import Request
 
-class Delegator:
+def route(argv, config):
     """
-    Delegator Class handles all requests and delegates them to the correct
-    controllers and views
+    Creates a Request object out of argv
+    >>> import config
+    >>> route(['controller', 'action', 'param1'], config.Config())
+    {'action': 'action', 'controller': 'controller', 'parameters': ['param1']}
     """
-    def __init__(self, argv):
-        self.filename = argv.pop(0)
-        self.argv = argv
+    request = Request()
+    request['controller'] = config['default_controller']
+    request['action'] = config['default_action']
 
-    def run(self):
-        return self.delegate(self.route())
+    if len(argv) > 0:
+        request['controller'] = argv[0]
+        if len(argv) > 1:
+            request['action'] = argv[1]
+            if len(argv) > 2:
+                request['parameters'] = argv[2:]
 
-    def route(self):
-        """
-        Creates a Request object out of argv
-        >>> x = Delegator(['filename', 'controller', 'action', 'param1'])
-        >>> x.route()
-        {'action': 'action', 'controller': 'controller', 'parameters': ['param1']}
-        """
-        request = Request()
-        request['controller'] = config['default_controller']
-        request['action'] = config['default_action']
-        
-        if len(self.argv) > 0:
-            request['controller'] = self.argv[0]
-            if len(self.argv) > 1:
-                request['action'] = self.argv[1]
-                if len(self.argv) > 2:
-                    request['parameters'] = self.argv[2:]
+    return request
 
-        return request
-
-    def delegate(self, request):
-        """
-        Takes a Request object and instantiates the corresponding controller and
-        calls a method based on the action
-        """
-        if request['controller'] in controllers:
-            controller = controllers[request['controller']](request, config)
-            try:
-                action = getattr(controller, request['action'])
-            except:
-                print "ActionNotFoundError: That does not exist, better error handling to come soon"
-            else:
-                action()
+def delegate(request, controllers, config):
+    """
+    Takes a Request object and instantiates the corresponding controller and
+    calls a method based on the action
+    """
+    if request['controller'] in controllers:
+        controller = controllers[request['controller']](request, config)
+        try:
+            action = getattr(controller, request['action'])
+        except:
+            print "ActionNotFoundError: That does not exist, better error handling to come soon"
         else:
-            print "ControllerNotFoundError: That does not exist, better error handling to come soon"
+            action()
+    else:
+        print "ControllerNotFoundError: That does not exist, better error handling to come soon"
 
 def parse_args(argv, takes_args = []): 
     """

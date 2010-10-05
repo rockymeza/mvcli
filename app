@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
 import sys
-from core import delegator
-from core.config import config
 
-config['default_controller'] = 'main'
-config['default_action'] = 'main'
-delegator.Delegator(sys.argv).run()
+from core.mvcli import MVCLI
+from controller import main
 
-
+app = MVCLI()
+app.config['default_controller'] = 'main'
+app.config['default_action'] = 'main'
+app.add_controller(main.Main)
+app.run(sys.argv)
 
