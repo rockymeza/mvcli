@@ -3,7 +3,7 @@ class Config:
     Config Class is a container for the configuration settings that the core classes use
     >>> config = Config()
     """
-    def __init__(self, dictionary = {}):
+    def __init__(self, dictionary = None):
         """
         Instantiates an instance of the Config class.
 
@@ -21,8 +21,15 @@ class Config:
         >>> config2['key2'] = 'new value'
         >>> config2['key2']
         'new value'
+
+        # a tricky one
+        >>> config1 = Config()
+        >>> config2 = Config()
+        >>> config1[1] = 2
+        >>> config2[1] == None
+        True
         """
-        self.dictionary = dictionary
+        self.dictionary = dictionary or {}
 
     def __getitem__(self, key):
         """
