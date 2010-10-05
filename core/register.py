@@ -1,6 +1,3 @@
-from core.request import request
-from core.config import config
-
 controllers = {}
 views = {}
 
@@ -13,12 +10,9 @@ def register_controller(controller, *aliases):
 
 def controller(*routes):
     """
-    Decorator that registers the controller and gives it some
-    useful properties
+    Decorator that registers the controller.
     """
     def f(controller):
-        controller.request = request
-        controller.config = config
         register_controller(controller, *routes)
         return controller
     return f

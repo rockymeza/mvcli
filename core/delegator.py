@@ -1,5 +1,5 @@
 from core.config import config
-from core.request import request
+from core.request import Request
 from controller import *
 from core.register import controllers, views
 
@@ -11,13 +11,13 @@ class Delegator:
     def __init__(self, argv):
         self.filename = argv.pop(0)
         self.argv = argv
-        self.route()
-        self.delegate()
+        self.delegate(self.route())
 
     def route(self):
         """
         Creates a Request object out of argv
         """
+        request = Request()
         request['controller'] = config['default_controller']
         request['action'] = config['default_action']
         
@@ -30,13 +30,13 @@ class Delegator:
 
         return request
 
-    def delegate(self):
+    def delegate(self, request):
         """
         Takes a Request object and instantiates the corresponding controller and
         calls a method based on the action
         """
         if request['controller'] in controllers:
-            controller = controllers[request['controller']]()
+            controller = controllers[request['controller']](request, config)
             try:
                 action = getattr(controller, request['action'])
             except:

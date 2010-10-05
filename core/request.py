@@ -25,5 +25,3 @@ class Request:
         """
         self.dictionary[key] = value
         
-request = Request()        
-
