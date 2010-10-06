@@ -73,4 +73,25 @@ class Config:
         """
         if not key in self.dictionary:
             self.dictionary[key] = value
+
+    def merge(self, dictionary, overwrite = True):
+        """
+        Merges a dictionary into the current dictionary
+        You can change the name if you want
+     
+        Will overwrite by default
+        >>> config1 = Config({'a': 1, 'b': 2})
+        >>> config1.merge({'b': 3, 'c': 4})
+        >>> config1['b']
+        3
+        >>> config1.merge({'c': 5, 'd': 6}, False)
+        >>> config1['c']
+        4
+        """
+        if overwrite:
+            self.dictionary = dict(self.dictionary, **dictionary)
+        else:
+            self.dictioanry = dict(dictionary, **self.dictionary)
+
+       
 config = Config()
