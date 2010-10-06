@@ -89,7 +89,7 @@ class Config:
         4
         """
         if overwrite:
-            self.dictionary = dict(self.dictionary, **dictionary)
+            self.dictionary.update(dictionary)
         else:
             self.dictioanry = dict(dictionary, **self.dictionary)
 
