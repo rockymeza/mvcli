@@ -27,6 +27,10 @@ def getoptionspec(action):
     (['foo'], [], ['bar'], 1, -1)
     >>> getoptionspec(lambda verbose = False, debug = False, *input_files, output = "a.out":1)
     (['output'], [], ['debug', 'verbose'], 0, -1)
+    >>> getoptionspec(lambda **kwargs:1)
+    (-1, [], [], 0, 0)
+    >>> getoptionspec(lambda x, *, y, **kwargs:1)
+    (-1, ['y'], [], 1, 1)
     """
 
     # inspect gives us an argspec with None instead of an empty list -- very annoying!
@@ -53,6 +57,8 @@ def getoptionspec(action):
             optional_keywords.append(key)
         else:
             required_keywords.append(key)
+    if argspec.varkw:
+        optional_keywords = -1
 
     if argspec.varargs:
         maxfiles = -1
