@@ -8,5 +8,5 @@ class Main:
         return 'Hello World'
 
     def foo(self, bar, baz = False):
-        pass
+        return (bar, baz)
 

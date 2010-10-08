@@ -38,7 +38,7 @@ def delegate(request, controllers, config):
             arguments = parse_options(optionspec, request['parameters'])
 
             # eventually this could be handed to a template
-            text = action(*arguments)
+            text = action(*arguments[0], **arguments[1])
             print text
     else:
         print "ControllerNotFoundError: That does not exist, better error handling to come soon"
