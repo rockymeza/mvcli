@@ -8,6 +8,6 @@ from controller import main
 app = MVCLI()
 app.config['default_controller'] = 'main'
 app.config['default_action'] = 'main'
-app.add_controller(main.Main)
+app.add_controller(main.Main, 'main', 'm')
 app.run(sys.argv)
 

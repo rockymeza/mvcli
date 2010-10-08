@@ -8,10 +8,9 @@ class MVCLI(object):
         self.controllers = {}
         self.views = {}
 
-    def add_controller(self, *controllers):
-        for controller in controllers:
-            for route in controller.responds_to:
-                self.controllers[route] = controller
+    def add_controller(self, controller, *routes):
+        for route in routes:
+            self.controllers[route] = controller
 
     def run(self, argv):
         self.filename = argv.pop(0)

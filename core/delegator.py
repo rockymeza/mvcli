@@ -1,4 +1,5 @@
 from request import Request
+from introspection import getoptionspec
 
 def route(argv, config):
     """
@@ -32,7 +33,11 @@ def delegate(request, controllers, config):
         except:
             print "ActionNotFoundError: That does not exist, better error handling to come soon"
         else:
-            action()
+            optionspec = getoptionspec(action)
+
+            # eventually this could be handed to a template
+            text = action()
+            print text
     else:
         print "ControllerNotFoundError: That does not exist, better error handling to come soon"
 

@@ -1,10 +1,12 @@
-from core.register import controller
-
-@controller('main', 'm')
 class Main:
     def __init__(self, request, config):
         self.request = request
         self.config = config
+        self.actions = {}
+    
     def main(self):
-        print self.request['controller'], self.request['action']
+        return 'Hello World'
+
+    def foo(self, bar, baz = False):
+        pass
 

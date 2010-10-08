@@ -93,5 +93,3 @@ class Config:
         else:
             self.dictioanry = dict(dictionary, **self.dictionary)
 
-       
-config = Config()
