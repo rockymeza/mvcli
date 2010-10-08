@@ -34,9 +34,10 @@ def delegate(request, controllers, config):
             print "ActionNotFoundError: That does not exist, better error handling to come soon"
         else:
             optionspec = getoptionspec(action)
+            arguments = parse_options(optionspec, request['parameters'])
 
             # eventually this could be handed to a template
-            text = action()
+            text = action(*arguments)
             print text
     else:
         print "ControllerNotFoundError: That does not exist, better error handling to come soon"
@@ -132,3 +133,85 @@ class MatcherList(list):
             except AttributeError:
                 pass
         return False
+
+
+def parse_options(optionspec, argv):
+    """
+    (options, files)
+
+    >>> from introspection import getoptionspec
+    >>> parse_options(getoptionspec(lambda x, y=False: 1), ['-x', 'foo', '-y'])
+    ['foo', True]
+    >>> parse_options(getoptionspec(lambda foo, bar=False: 1), ['--foo', 'Hello', '--bar'])
+    ['Hello', True]
+    >>> parse_options(getoptionspec(lambda x, bar=False, *files: 1), ['--bar', '-x', 'foo'])
+    ['foo', True]
+    >>> parse_options(getoptionspec(lambda x, bar=False, *files: 1), ['--bar', '-x', 'foo', 'baz'])
+    ['foo', True, 'baz']
+    >>> parse_options(getoptionspec(lambda x, z, f=False: 1), ['-xzf', 'foo', 'bar'])
+    ['foo', 'bar', True]
+    >>> parse_options(getoptionspec(lambda foo, bar='Hello', verbose=False, *files: 1), ['--verbose', 'outoforder_file', '--foo=baz'])
+    ['baz', None, True, 'outoforder_file']
+    """
+    args = {}
+    files = []
+    while argv:
+        arg = argv.pop(0)
+        if arg.startswith('--'):
+            (key, ignore, value) = arg[2:].partition('=')
+            # required
+            if key in optionspec.required:
+                args[key] = value or argv.pop(0)
+                optionspec.required.remove(key)
+            # optional
+            elif key in optionspec.optional:
+                args[key] = value or argv.pop(0)
+            elif key in optionspec.flags:
+                args[key] = True
+            else:
+                # fix error messages someone
+                print 'bad option'
+        elif arg.startswith('-'):
+            for letter in arg[1:]:
+                # required
+                if letter in optionspec.required:
+                    args[letter] = argv.pop(0)
+                    optionspec.required.remove(letter)
+                # optional
+                elif letter in optionspec.optional:
+                    args[letter] = argv.pop(0)
+                # boolean
+                elif letter in optionspec.flags:
+                    args[letter] = True
+                # none of the above
+                else:
+                # fix error messages someone
+                    print 'bad option'
+        elif optionspec.accepts_files:
+            files.append(arg)
+
+    # pass None for optionals
+    # is this the correct value to pass in?
+    for option in optionspec.optional:
+        if not option in args.keys():
+            args[option] = None
+
+    # did they forget a required one?
+    if optionspec.required:
+        print 'missing required option'
+
+    arguments = []
+    # put them in the right order
+    for arg in optionspec.args:
+        arguments.append(args[arg])
+    
+    # add files
+    arguments.extend(files)
+    return arguments
+
+
+
+
+
+
+    
