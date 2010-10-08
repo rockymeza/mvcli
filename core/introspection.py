@@ -4,26 +4,26 @@ from collections import namedtuple
 
 def getoptionspec(action):
     """
-    (required_options, optional_options, flags, accepts_files, args)
+    (required_options, optional_options, flags, accepts_files)
     >>> getoptionspec(lambda x: 1)
-    Optionspec(required=['x'], optional=[], flags=[], accepts_files=False, args=['x'])
+    Optionspec(required=['x'], optional=[], flags=[], accepts_files=False)
     >>> getoptionspec(lambda x, y, z = 1: 1)
-    Optionspec(required=['x', 'y'], optional=['z'], flags=[], accepts_files=False, args=['x', 'y', 'z'])
+    Optionspec(required=['x', 'y'], optional=['z'], flags=[], accepts_files=False)
     >>> getoptionspec(lambda *x: 1)
-    Optionspec(required=[], optional=[], flags=[], accepts_files=True, args=[])
+    Optionspec(required=[], optional=[], flags=[], accepts_files=True)
     >>> getoptionspec(lambda x, *y: 1)
-    Optionspec(required=['x'], optional=[], flags=[], accepts_files=True, args=['x'])
+    Optionspec(required=['x'], optional=[], flags=[], accepts_files=True)
     >>> getoptionspec(lambda x, y = False: 1)
-    Optionspec(required=['x'], optional=[], flags=['y'], accepts_files=False, args=['x', 'y'])
+    Optionspec(required=['x'], optional=[], flags=['y'], accepts_files=False)
     >>> getoptionspec(lambda foo, bar = 'Hello', verbose = False, debug = False, *files: 1)
-    Optionspec(required=['foo'], optional=['bar'], flags=['debug', 'verbose'], accepts_files=True, args=['foo', 'bar', 'verbose', 'debug'])
+    Optionspec(required=['foo'], optional=['bar'], flags=['debug', 'verbose'], accepts_files=True)
     >>> getoptionspec(lambda foo = None: 1)
-    Optionspec(required=[], optional=['foo'], flags=[], accepts_files=False, args=['foo'])
+    Optionspec(required=[], optional=['foo'], flags=[], accepts_files=False)
     >>> class Foo:
     ...     def f(self, x, y = "a.out", z = False):
     ...             pass
     >>> getoptionspec(Foo.f)
-    Optionspec(required=['x'], optional=['y'], flags=['z'], accepts_files=False, args=['x', 'y', 'z'])
+    Optionspec(required=['x'], optional=['y'], flags=['z'], accepts_files=False)
     """
     argspec = formatargspec(action)
     
@@ -36,35 +36,34 @@ def getoptionspec(action):
         else:
             optional_options.append(arg)
 
-    Optionspec = namedtuple('Optionspec', 'required optional flags accepts_files args')
-    return Optionspec(argspec[0], optional_options, flags, argspec[2], argspec[3])
+    Optionspec = namedtuple('Optionspec', 'required optional flags accepts_files')
+    return Optionspec(argspec[0], optional_options, flags, argspec[2])
 
 def formatargspec(function):
     """
-    (required_options, optional_options, accepts_files args)
+    (required_options, optional_options, accepts_files)
     >>> formatargspec(lambda x: 1)
-    (['x'], {}, False, ['x'])
+    (['x'], {}, False)
     >>> formatargspec(lambda x, y: 1)
-    (['x', 'y'], {}, False, ['x', 'y'])
+    (['x', 'y'], {}, False)
     >>> formatargspec(lambda x = False: 1)
-    ([], {'x': False}, False, ['x'])
+    ([], {'x': False}, False)
     >>> formatargspec(lambda x = 'Hello': 1)
-    ([], {'x': 'Hello'}, False, ['x'])
-    >>> formatargspec(lambda w, x, y = False, z = 'Hello': 1) == (['w', 'x'], {'y': False, 'z': 'Hello'}, False, ['w', 'x', 'y', 'z'])
+    ([], {'x': 'Hello'}, False)
+    >>> formatargspec(lambda w, x, y = False, z = 'Hello': 1) == (['w', 'x'], {'y': False, 'z': 'Hello'}, False)
     True
     >>> formatargspec(lambda *args: 1)
-    ([], {}, True, [])
-    >>> formatargspec(lambda w, x, y = False, z = 'Hello', *args: 1) == (['w', 'x'], {'y': False, 'z': 'Hello'}, True, ['w', 'x', 'y', 'z'])
+    ([], {}, True)
+    >>> formatargspec(lambda w, x, y = False, z = 'Hello', *args: 1) == (['w', 'x'], {'y': False, 'z': 'Hello'}, True)
     True
     """
     argspec = inspect.getargspec(function)
-
-    optional_options = {}
 
     # if is method, throw away self argument
     if inspect.ismethod(function):
         argspec.args.pop(0)
 
+    optional_options = {}
     args = copy.copy(argspec.args)
         
     if argspec.defaults:
@@ -76,7 +75,7 @@ def formatargspec(function):
     # accepts files?
     accepts_files = True if argspec.varargs else False
 
-    return (args, optional_options, accepts_files, argspec.args)
+    return (args, optional_options, accepts_files)
 
 import doctest
 doctest.testmod()

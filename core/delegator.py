@@ -1,5 +1,6 @@
 from request import Request
 from introspection import getoptionspec
+import copy
 
 def route(argv, config):
     """
@@ -141,20 +142,23 @@ def parse_options(optionspec, argv):
 
     >>> from introspection import getoptionspec
     >>> parse_options(getoptionspec(lambda x, y=False: 1), ['-x', 'foo', '-y'])
-    ['foo', True]
+    (['foo'], {'y': True})
     >>> parse_options(getoptionspec(lambda foo, bar=False: 1), ['--foo', 'Hello', '--bar'])
-    ['Hello', True]
+    (['Hello'], {'bar': True})
     >>> parse_options(getoptionspec(lambda x, bar=False, *files: 1), ['--bar', '-x', 'foo'])
-    ['foo', True]
+    (['foo'], {'bar': True})
     >>> parse_options(getoptionspec(lambda x, bar=False, *files: 1), ['--bar', '-x', 'foo', 'baz'])
-    ['foo', True, 'baz']
+    (['foo', 'baz'], {'bar': True})
     >>> parse_options(getoptionspec(lambda x, z, f=False: 1), ['-xzf', 'foo', 'bar'])
-    ['foo', 'bar', True]
+    (['foo', 'bar'], {'f': True})
     >>> parse_options(getoptionspec(lambda foo, bar='Hello', verbose=False, *files: 1), ['--verbose', 'outoforder_file', '--foo=baz'])
-    ['baz', None, True, 'outoforder_file']
+    (['baz', 'outoforder_file'], {'verbose': True})
     """
     args = {}
+    kwargs = {}
     files = []
+
+    required_options = copy.copy(optionspec.required)
     while argv:
         arg = argv.pop(0)
         if arg.startswith('--'):
@@ -162,12 +166,12 @@ def parse_options(optionspec, argv):
             # required
             if key in optionspec.required:
                 args[key] = value or argv.pop(0)
-                optionspec.required.remove(key)
+                required_options.remove(key)
             # optional
             elif key in optionspec.optional:
-                args[key] = value or argv.pop(0)
+                kwargs[key] = value or argv.pop(0)
             elif key in optionspec.flags:
-                args[key] = True
+                kwargs[key] = True
             else:
                 # fix error messages someone
                 print 'bad option'
@@ -176,13 +180,13 @@ def parse_options(optionspec, argv):
                 # required
                 if letter in optionspec.required:
                     args[letter] = argv.pop(0)
-                    optionspec.required.remove(letter)
+                    required_options.remove(letter)
                 # optional
                 elif letter in optionspec.optional:
-                    args[letter] = argv.pop(0)
+                    kwargs[letter] = argv.pop(0)
                 # boolean
                 elif letter in optionspec.flags:
-                    args[letter] = True
+                    kwargs[letter] = True
                 # none of the above
                 else:
                 # fix error messages someone
@@ -190,24 +194,18 @@ def parse_options(optionspec, argv):
         elif optionspec.accepts_files:
             files.append(arg)
 
-    # pass None for optionals
-    # is this the correct value to pass in?
-    for option in optionspec.optional:
-        if not option in args.keys():
-            args[option] = None
-
     # did they forget a required one?
-    if optionspec.required:
+    if required_options:
         print 'missing required option'
 
     arguments = []
     # put them in the right order
-    for arg in optionspec.args:
+    for arg in optionspec.required:
         arguments.append(args[arg])
     
     # add files
     arguments.extend(files)
-    return arguments
+    return (arguments, kwargs)
 
 
 
