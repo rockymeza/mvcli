@@ -15,6 +15,7 @@ def route(argv, config):
     request['controller'] = config['default_controller']
     request['action'] = config['default_action']
 
+    
     if len(argv) > 0:
         request['controller'] = argv[0]
         if len(argv) > 1:
@@ -157,6 +158,7 @@ def parse_options(optionspec, argv):
     >>> parse_options(getoptionspec(lambda foo, bar='Hello', verbose=False, *files: 1), Argv(['--verbose', 'outoforder_file', '--foo=baz']))
     Arguments(args=['baz', 'outoforder_file'], kwargs={'verbose': True})
     """
+    argv = Argv(argv or [])
     args = {}
     kwargs = {}
     files = []
@@ -207,7 +209,11 @@ def parse_options(optionspec, argv):
     return Arguments(arguments, kwargs)
 
 
+class Argv(list):
+    def shiftflag(self):
+        if self[0].startswith('-'):
+            return self.pop(0)
 
-
-
-    
+    def shiftarg(self):
+        if not self[0].startswith('-'):
+            return self.pop(0)
