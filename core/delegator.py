@@ -12,16 +12,9 @@ def route(argv, config):
     {'action': 'action', 'controller': 'controller', 'parameters': ['param1']}
     """
     request = Request()
-    request['controller'] = config['default_controller']
-    request['action'] = config['default_action']
-
-    
-    if len(argv) > 0:
-        request['controller'] = argv[0]
-        if len(argv) > 1:
-            request['action'] = argv[1]
-            if len(argv) > 2:
-                request['parameters'] = argv[2:]
+    request['controller'] = argv.shiftarg() or config['default_controller']
+    request['action'] = argv.shiftarg() or config['default_action']
+    request['parameters'] = argv
 
     return request
 
@@ -158,7 +151,6 @@ def parse_options(optionspec, argv):
     >>> parse_options(getoptionspec(lambda foo, bar='Hello', verbose=False, *files: 1), Argv(['--verbose', 'outoforder_file', '--foo=baz']))
     Arguments(args=['baz', 'outoforder_file'], kwargs={'verbose': True})
     """
-    argv = Argv(argv or [])
     args = {}
     kwargs = {}
     files = []
