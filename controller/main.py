@@ -7,6 +7,6 @@ class Main:
     def main(self):
         return 'Hello World'
 
-    def foo(self, bar, baz = False):
+    def foo(self, bar, baz, qux, quux):
         return (bar, baz)
 

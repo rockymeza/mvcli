@@ -1,4 +1,5 @@
 from request import Request
+from exceptions import *
 from introspection import getoptionspec
 import copy
 
@@ -32,7 +33,7 @@ def delegate(request, controllers, config):
         try:
             action = getattr(controller, request['action'])
         except:
-            print "ActionNotFoundError: That does not exist, better error handling to come soon"
+            raise ActionError(request['action'])
         else:
             optionspec = getoptionspec(action)
             arguments = parse_options(optionspec, request['parameters'])
@@ -41,7 +42,7 @@ def delegate(request, controllers, config):
             text = action(*arguments[0], **arguments[1])
             print text
     else:
-        print "ControllerNotFoundError: That does not exist, better error handling to come soon"
+        raise ControllerError(request['controller'])
 
 def parse_args(argv, takes_args = []): 
     """
@@ -154,49 +155,45 @@ def parse_options(optionspec, argv):
     >>> parse_options(getoptionspec(lambda foo, bar='Hello', verbose=False, *files: 1), ['--verbose', 'outoforder_file', '--foo=baz'])
     (['baz', 'outoforder_file'], {'verbose': True})
     """
+    argv = Argv(argv or [])
     args = {}
     kwargs = {}
     files = []
 
     required_options = copy.copy(optionspec.required)
+
+    def assignkey(key, value = None):
+        # required
+        if key in optionspec.required:
+            args[key] = value or argv.shiftarg()
+            required_options.remove(key)
+            if not args[key]:
+                raise OptionValueError(key)
+        # optional
+        elif key in optionspec.optional:
+            kwargs[key] = value or argv.shiftarg()
+            if not kwargs[key]:
+                raise OptionValueError(key)
+        elif key in optionspec.flags:
+            kwargs[key] = True
+        else:
+            raise OptionError(key)
+
     while argv:
-        arg = argv.pop(0)
-        if arg.startswith('--'):
-            (key, ignore, value) = arg[2:].partition('=')
-            # required
-            if key in optionspec.required:
-                args[key] = value or argv.pop(0)
-                required_options.remove(key)
-            # optional
-            elif key in optionspec.optional:
-                kwargs[key] = value or argv.pop(0)
-            elif key in optionspec.flags:
-                kwargs[key] = True
-            else:
-                # fix error messages someone
-                print 'bad option'
-        elif arg.startswith('-'):
-            for letter in arg[1:]:
-                # required
-                if letter in optionspec.required:
-                    args[letter] = argv.pop(0)
-                    required_options.remove(letter)
-                # optional
-                elif letter in optionspec.optional:
-                    kwargs[letter] = argv.pop(0)
-                # boolean
-                elif letter in optionspec.flags:
-                    kwargs[letter] = True
-                # none of the above
-                else:
-                # fix error messages someone
-                    print 'bad option'
+        arg = argv.shiftflag()
+        if arg:
+            if arg.startswith('--'):
+                (key, ignore, value) = arg[2:].partition('=')
+                assignkey(key, value)
+            elif arg.startswith('-'):
+                for letter in arg[1:]:
+                    assignkey(letter)
         elif optionspec.accepts_files:
-            files.append(arg)
+            files.append(argv.shiftarg())
 
     # did they forget a required one?
     if required_options:
-        print 'missing required option'
+        raise MissingOptionError(required_options)
 
     arguments = []
     # put them in the right order
@@ -207,6 +204,14 @@ def parse_options(optionspec, argv):
     arguments.extend(files)
     return (arguments, kwargs)
 
+class Argv(list):
+    def shiftflag(self):
+        if self[0].startswith('-'):
+            return self.pop(0)
+
+    def shiftarg(self):
+        if not self[0].startswith('-'):
+            return self.pop(0)
 
 
 
