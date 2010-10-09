@@ -1,6 +1,7 @@
 from request import Request
 from exceptions import *
 from introspection import getoptionspec
+import collections
 import copy
 
 def route(argv, config):
@@ -39,7 +40,7 @@ def delegate(request, controllers, config):
             arguments = parse_options(optionspec, request['parameters'])
 
             # eventually this could be handed to a template
-            text = action(*arguments[0], **arguments[1])
+            text = action(*arguments.args, **arguments.kwargs)
             print text
     else:
         raise ControllerError(request['controller'])
@@ -142,20 +143,20 @@ def parse_options(optionspec, argv):
     (options, files)
 
     >>> from introspection import getoptionspec
-    >>> parse_options(getoptionspec(lambda x, y=False: 1), ['-x', 'foo', '-y'])
-    (['foo'], {'y': True})
-    >>> parse_options(getoptionspec(lambda foo, bar=False: 1), ['--foo', 'Hello', '--bar'])
-    (['Hello'], {'bar': True})
-    >>> parse_options(getoptionspec(lambda x, bar=False, *files: 1), ['--bar', '-x', 'foo'])
-    (['foo'], {'bar': True})
-    >>> parse_options(getoptionspec(lambda x, bar=False, *files: 1), ['--bar', '-x', 'foo', 'baz'])
-    (['foo', 'baz'], {'bar': True})
-    >>> parse_options(getoptionspec(lambda x, z, f=False: 1), ['-xzf', 'foo', 'bar'])
-    (['foo', 'bar'], {'f': True})
-    >>> parse_options(getoptionspec(lambda foo, bar='Hello', verbose=False, *files: 1), ['--verbose', 'outoforder_file', '--foo=baz'])
-    (['baz', 'outoforder_file'], {'verbose': True})
+    >>> from mvcli import Argv
+    >>> parse_options(getoptionspec(lambda x, y=False: 1), Argv(['-x', 'foo', '-y']))
+    Arguments(args=['foo'], kwargs={'y': True})
+    >>> parse_options(getoptionspec(lambda foo, bar=False: 1), Argv(['--foo', 'Hello', '--bar']))
+    Arguments(args=['Hello'], kwargs={'bar': True})
+    >>> parse_options(getoptionspec(lambda x, bar=False, *files: 1), Argv(['--bar', '-x', 'foo']))
+    Arguments(args=['foo'], kwargs={'bar': True})
+    >>> parse_options(getoptionspec(lambda x, bar=False, *files: 1), Argv(['--bar', '-x', 'foo', 'baz']))
+    Arguments(args=['foo', 'baz'], kwargs={'bar': True})
+    >>> parse_options(getoptionspec(lambda x, z, f=False: 1), Argv(['-xzf', 'foo', 'bar']))
+    Arguments(args=['foo', 'bar'], kwargs={'f': True})
+    >>> parse_options(getoptionspec(lambda foo, bar='Hello', verbose=False, *files: 1), Argv(['--verbose', 'outoforder_file', '--foo=baz']))
+    Arguments(args=['baz', 'outoforder_file'], kwargs={'verbose': True})
     """
-    argv = Argv(argv or [])
     args = {}
     kwargs = {}
     files = []
@@ -202,16 +203,8 @@ def parse_options(optionspec, argv):
     
     # add files
     arguments.extend(files)
-    return (arguments, kwargs)
-
-class Argv(list):
-    def shiftflag(self):
-        if self[0].startswith('-'):
-            return self.pop(0)
-
-    def shiftarg(self):
-        if not self[0].startswith('-'):
-            return self.pop(0)
+    Arguments = collections.namedtuple('Arguments', 'args kwargs')
+    return Arguments(arguments, kwargs)
 
 
 
