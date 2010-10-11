@@ -33,9 +33,7 @@ def delegate(request, controllers, config):
             optionspec = getoptionspec(action)
             arguments = parse_options(optionspec, request['parameters'])
 
-            # eventually this could be handed to a template
-            text = action(*arguments.args, **arguments.kwargs)
-            print text
+            action(*arguments.args, **arguments.kwargs)
     else:
         raise ControllerError(request['controller'])
 

@@ -2,6 +2,22 @@ import inspect
 import copy
 from collections import namedtuple
 
+def getactions(controller):
+    """
+    >>> class C:
+    ...     attribute = True
+    ...     def __init__(self): pass
+    ...     def foo(self): pass
+    >>> getactions(C)
+    [('foo', <unbound method C.foo>)]
+    """
+    actions = []
+    members = inspect.getmembers(controller)
+    for name, member in members:
+        if inspect.ismethod(member) and not name.startswith('__'):
+            actions.append((name, member))
+    return actions
+
 def getoptionspec(action):
     """
     (required_options, optional_options, flags, accepts_files)
