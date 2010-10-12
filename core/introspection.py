@@ -1,6 +1,7 @@
 import inspect
 import copy
 from collections import namedtuple
+import re
 
 def getactions(controller):
     """
@@ -92,6 +93,32 @@ def formatargspec(function):
     accepts_files = True if argspec.varargs else False
 
     return (args, optional_options, accepts_files)
+
+def getmeta(function):
+    """
+    {'description': ..., 'usage': ...}
+    >>> def foo():
+    ...     pass
+    >>> getmeta(foo)
+    {}
+    >>> def bar():
+    ...     """
+    ...     Description: This is bar
+    ...     Usage: bar()
+    ...     """
+    >>> getmeta(bar) == {'description': 'This is bar', 'usage': 'bar()'}
+    True
+    """
+    meta = {}
+    
+    if function.__doc__:
+        for key in ['description', 'usage']:
+            match = re.search('^' + key +': (.*?)$', function.__doc__)
+            if match:
+                meta[key] = match.group(0)
+    
+    return meta
+
 
 import doctest
 doctest.testmod()
