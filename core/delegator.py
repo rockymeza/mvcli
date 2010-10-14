@@ -148,6 +148,8 @@ def parse_options(optionspec, argv):
     Arguments(args=['foo', 'bar'], kwargs={'f': True})
     >>> parse_options(getoptionspec(lambda foo, bar='Hello', verbose=False, *files: 1), Argv(['--verbose', 'outoforder_file', '--foo=baz']))
     Arguments(args=['baz', 'outoforder_file'], kwargs={'verbose': True})
+    >>> parse_options(getoptionspec(lambda foo, bar: 1), Argv(['--bar=1', 'b']))
+    Arguments('not sure of the expected behavior')
     """
     args = {}
     kwargs = {}
