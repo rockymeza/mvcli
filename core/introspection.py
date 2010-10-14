@@ -102,10 +102,10 @@ def getmeta(function):
     >>> getmeta(foo)
     {}
     >>> def bar():
-    ...     """
-    ...     Description: This is bar
-    ...     Usage: bar()
-    ...     """
+    ...     "\
+    ...     Description: This is bar\
+    ...     Usage: bar()\
+    ...     "
     >>> getmeta(bar) == {'description': 'This is bar', 'usage': 'bar()'}
     True
     """
