@@ -25,6 +25,8 @@ class MVCLI(object):
             print '%s is not a valid subcommand.' % e
         except OptionError as e:
             print '%s is not a valid option.' % e
+        except NoFilesError:
+            print 'This command does not accept files.'
         except MissingOptionError as e:
             print 'The option(s) %s is/are required.' % e
 

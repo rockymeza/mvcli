@@ -7,9 +7,6 @@ import copy
 def route(argv, config):
     """
     Creates a Request object out of argv
-    >>> import config
-    >>> route(['controller', 'action', 'param1'], config.Config())
-    {'action': 'action', 'controller': 'controller', 'parameters': ['param1']}
     """
     request = Request()
     request['controller'] = argv.shiftarg() or config['default_controller']
@@ -130,26 +127,10 @@ class MatcherList(list):
         return False
 
 
+Arguments = collections.namedtuple('Arguments', 'args kwargs')
 def parse_options(optionspec, argv):
     """
-    (options, files)
-
-    >>> from introspection import getoptionspec
-    >>> from mvcli import Argv
-    >>> parse_options(getoptionspec(lambda x, y=False: 1), Argv(['-x', 'foo', '-y']))
-    Arguments(args=['foo'], kwargs={'y': True})
-    >>> parse_options(getoptionspec(lambda foo, bar=False: 1), Argv(['--foo', 'Hello', '--bar']))
-    Arguments(args=['Hello'], kwargs={'bar': True})
-    >>> parse_options(getoptionspec(lambda x, bar=False, *files: 1), Argv(['--bar', '-x', 'foo']))
-    Arguments(args=['foo'], kwargs={'bar': True})
-    >>> parse_options(getoptionspec(lambda x, bar=False, *files: 1), Argv(['--bar', '-x', 'foo', 'baz']))
-    Arguments(args=['foo', 'baz'], kwargs={'bar': True})
-    >>> parse_options(getoptionspec(lambda x, z, f=False: 1), Argv(['-xzf', 'foo', 'bar']))
-    Arguments(args=['foo', 'bar'], kwargs={'f': True})
-    >>> parse_options(getoptionspec(lambda foo, bar='Hello', verbose=False, *files: 1), Argv(['--verbose', 'outoforder_file', '--foo=baz']))
-    Arguments(args=['baz', 'outoforder_file'], kwargs={'verbose': True})
-    >>> parse_options(getoptionspec(lambda foo, bar: 1), Argv(['--bar=1', 'b']))
-    Arguments('not sure of the expected behavior')
+    Arguments(args, kwargs)
     """
     args = {}
     kwargs = {}
@@ -185,6 +166,9 @@ def parse_options(optionspec, argv):
                     assignkey(letter)
         elif optionspec.accepts_files:
             files.append(argv.shiftarg())
+        else:
+            raise NoFilesError(argv.shiftarg())
+
 
     # did they forget a required one?
     if required_options:
@@ -197,7 +181,6 @@ def parse_options(optionspec, argv):
     
     # add files
     arguments.extend(files)
-    Arguments = collections.namedtuple('Arguments', 'args kwargs')
     return Arguments(arguments, kwargs)
 
 
