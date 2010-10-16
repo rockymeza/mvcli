@@ -1,42 +1,16 @@
-class ControllerError(Exception):
-    def __init__(self, controller):
-        self.controller = controller
-
-    def __str__(self):
-        return repr(self.controller)
-        
-class ActionError(Exception):
-    def __init__(self, action):
-        self.action = action
-
-    def __str__(self):
-        return repr(self.action)
-        
-class OptionError(Exception):
-    def __init__(self, option):
-        self.option = option
-
-    def __str__(self):
-        return repr(self.option)
-        
-class OptionValueError(Exception):
-    def __init__(self, option):
-        self.option = option
-
-    def __str__(self):
-        return repr(self.option)
-
+class ControllerError(Exception): pass
+class ActionError(Exception): pass
+class OptionError(Exception): pass
+class OptionValueError(Exception): pass
+class NoFilesError(Exception): pass
 class MissingOptionError(Exception):
-    def __init__(self, option):
-        self.option = option
-
     def __str__(self):
-        if isinstance(self.option, list):
-            if len(self.option) == 1:
-                return self.option[0]
+        if isinstance(self.value, list):
+            if len(self.value) == 1:
+                return self.value[0]
             else:
-                last_item = self.option.pop()
-                string = ', '.join(self.option)
+                last_item = self.value.pop()
+                string = ', '.join(self.value)
                 return string + ' and ' + last_item
         else:
-            return repr(self.option)
+            Exception.__str__()
