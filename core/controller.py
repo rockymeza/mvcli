@@ -1,7 +1,7 @@
 from core import introspection
 from core.formatter import color
 from collections import namedtuple
-from core.exceptions import *
+import exceptions
 
 Metadata = namedtuple('Metadata', 'description options examples')
 class Controller:
@@ -20,57 +20,57 @@ class Controller:
         cls.title = title
         cls.description = description
 
-
-    def main(self):
-        print 'Hello World'
-
-    def foo(self, bar, baz, qux, quux):
-        print (bar, baz)
-
-    def help(self, *actions):
-        if actions:
-            for action in actions:
-                if action in self.actions:
-                    method = getattr(self, action)
-                    out = []
-                    out.append(color(self.title + '#' + action, 'cyan'))
-                    meta = self.actions[action]
-                    
-                    if meta.description:
-                        out.append('DESCRIPTION:')
-                        out.append('\t' + meta.description)
-
-                    if meta.options:
-                        out.append('OPTIONS:')
-                        for name, description in meta.options.items():
-                            out.append('\t' + color(name, 'yellow') + '\t\t' + description)
-
-                    if meta.examples:
-                        out.append('EXAMPLES:')
-                        for example in meta.examples:
-                            out.append('\t' + example)
-
-                    print '\n'.join(out)
-                else:
-                    raise ActionError(action)    
-        else:
-            out = []
-            out.append(color(self.title, 'cyan'))
-
-            for attr in ['description']:
-                if hasattr(self, attr):
-                    out.append(attr.upper())
-                    out.append('\t' + getattr(self, attr))
-            
-            if self.actions:
-                out.append('SUBCOMMANDS:')
-                for name, method in self.actions.items():
-                    line = '\t' + color(name, 'yellow')
-                    line += '\t\t' + self.actions[name].description
-                    out.append(line)
-                    
-            print '\n'.join(out)
-
     @classmethod
     def action(cls, name, description, options=None, examples=None):
         cls.actions[name] = Metadata(description, options or {}, examples or [])
+
+    def help(self, *actions):
+        lines = self.action_help(*actions) if actions else self.controller_help()
+
+    def action_help(self, *actions):
+        for action in actions:
+            if action in self.actions:
+                self.ptitle(self.title)
+                meta = self.actions[action]
+                
+                if meta.description:
+                    self.pheader('DESCRIPTION:')
+                    self.pindent('\t' + meta.description)
+
+                if meta.options:
+                    self.pheader('OPTIONS:')
+                    for name, description in meta.options.items():
+                        self.pdefinition(name, description)
+
+                if meta.examples:
+                    self.pheader('EXAMPLES:')
+                    for example in meta.examples:
+                        self.pindent('\t' + example)
+            else:
+                raise exceptions.ActionError(action)    
+
+    def controller_help(self):
+        lines = []
+        self.ptitle(self.title)
+
+        
+        if hasattr(self, 'description'):
+            self.pheader('DESCRIPTION:')
+            self.pindent(self.description)
+        if self.actions:
+            self.pheader('SUBCOMMANDS:')
+            for name, method in self.actions.items():
+                self.pdefinition(name, self.actions[name].description)
+
+    def ptitle(self, text):
+        print color(text, self.config['colors.title'])
+
+    def pheader(self, text):
+        print color(text, self.config['colors.header'])
+    
+    def pindent(self, text):
+        print '\t' + text
+
+    def pdefinition(self, key, value):
+        print color('\t' + key, self.config['colors.key']) + color('\t\t' + value, self.config['colors.value'])
+

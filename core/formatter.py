@@ -35,8 +35,13 @@ def color(text, fgcolor = None, bgcolor = None):
     True
     >>> color('Foo', fgcolor = 'cyan', bgcolor = 'red') == '\033[41m\033[36mFoo\033[0m\033[0m'
     True
+    >>> color('Foo', 'cyan.red') == '\033[41m\033[36mFoo\033[0m\033[0m'
+    True
     """
     if fgcolor:
+        if fgcolor.find('.') > 0:
+            (fgcolor, ignore, bgcolor) = fgcolor.partition('.')
+            
         text = surround(text, fgcolors[fgcolor])
     if bgcolor:
         text = surround(text, bgcolors[bgcolor])
