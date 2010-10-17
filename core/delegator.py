@@ -22,15 +22,14 @@ def delegate(request, controllers, config):
     """
     if request['controller'] in controllers:
         controller = controllers[request['controller']](request, config)
-        try:
+        if request['action'] in controller.actions:
             action = getattr(controller, request['action'])
-        except:
-            raise ActionError(request['action'])
-        else:
             optionspec = getoptionspec(action)
             arguments = parse_options(optionspec, request['parameters'])
 
             action(*arguments.args, **arguments.kwargs)
+        else:
+            raise ActionError(request['action'])
     else:
         raise ControllerError(request['controller'])
 
