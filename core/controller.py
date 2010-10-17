@@ -35,7 +35,7 @@ class Controller:
                 
                 if meta.description:
                     self.pheader('DESCRIPTION:')
-                    self.pindent('\t' + meta.description)
+                    self.pindent(meta.description)
 
                 if meta.options:
                     self.pheader('OPTIONS:')
@@ -45,7 +45,7 @@ class Controller:
                 if meta.examples:
                     self.pheader('EXAMPLES:')
                     for example in meta.examples:
-                        self.pindent('\t' + example)
+                        self.pindent(example)
             else:
                 raise exceptions.ActionError(action)    
 
