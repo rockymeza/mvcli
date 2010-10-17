@@ -8,10 +8,12 @@ import controller.main
 app = MVCLI()
 app.config['default_controller'] = 'main'
 app.config['default_action'] = 'main'
-app.config['colors.title'] = 'white.blue'
-#app.config['colors.section'] = 'default'
-app.config['colors.key'] = 'yellow'
-#app.config['colors.value'] = 'default'
+
+app.config['colors.title'] = 'green.blue'
+app.config['colors.header'] = 'yellow.red'
+app.config['colors.key'] = 'white.green'
+app.config['colors.value'] = 'yellow'
+
 app.add_controller(controller.main.Main, 'main', 'm')
 app.controllers['main'].metadata('Main Controller', 'This is the awesome main controller')
 app.controllers['main'].action('main', 'Prints Hello World')
