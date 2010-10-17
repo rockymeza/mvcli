@@ -4,14 +4,23 @@ from collections import namedtuple
 from core.exceptions import *
 
 Metadata = namedtuple('Metadata', 'description options examples')
-
-class Help:
+class Controller:
     actions = {}
 
     def __init__(self, request, config):
         self.request = request
         self.config = config
     
+    @property
+    def title(self):
+        return self.__name__
+
+    @classmethod
+    def metadata(cls, title = None, description = None):
+        cls.title = title
+        cls.description = description
+
+
     def main(self):
         print 'Hello World'
 
@@ -32,12 +41,12 @@ class Help:
                         out.append('\t' + meta.description)
 
                     if meta.options:
-                        out.append('OPTIONS')
+                        out.append('OPTIONS:')
                         for name, description in meta.options.items():
                             out.append('\t' + color(name, 'yellow') + '\t\t' + description)
 
                     if meta.examples:
-                        out.append('EXAMPLES')
+                        out.append('EXAMPLES:')
                         for example in meta.examples:
                             out.append('\t' + example)
 
@@ -48,6 +57,7 @@ class Help:
             out = []
             out.append(color(self.title, 'cyan'))
 
+            for attr in ['description']:
                 if hasattr(self, attr):
                     out.append(attr.upper())
                     out.append('\t' + getattr(self, attr))
@@ -61,12 +71,6 @@ class Help:
                     
             print '\n'.join(out)
 
-def action(cls, name, description, options=None, examples=None):
-    cls.actions[name] = Metadata(description, options or {}, examples or [])
-    
-        
-        
-Help.title = 'Help Controller'
-Help.description = 'This is the awesome help controller'
-action(Help, 'main', 'this is main')
-action(Help, 'foo', 'foo description', {'bar': 'bar description'})
+    @classmethod
+    def action(cls, name, description, options=None, examples=None):
+        cls.actions[name] = Metadata(description, options or {}, examples or [])
