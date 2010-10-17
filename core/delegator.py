@@ -1,5 +1,5 @@
 from request import Request
-from exceptions import *
+import exceptions
 from introspection import getoptionspec
 import collections
 import copy
@@ -29,9 +29,9 @@ def delegate(request, controllers, config):
 
             action(*arguments.args, **arguments.kwargs)
         else:
-            raise ActionError(request['action'])
+            raise exceptions.ActionError(request['action'])
     else:
-        raise ControllerError(request['controller'])
+        raise exceptions.ControllerError(request['controller'])
 
 def parse_args(argv, takes_args = []): 
     """
@@ -143,16 +143,16 @@ def parse_options(optionspec, argv):
             args[key] = value or argv.shiftarg()
             required_options.remove(key)
             if not args[key]:
-                raise OptionValueError(key)
+                raise exceptions.OptionValueError(key)
         # optional
         elif key in optionspec.optional:
             kwargs[key] = value or argv.shiftarg()
             if not kwargs[key]:
-                raise OptionValueError(key)
+                raise exceptions.OptionValueError(key)
         elif key in optionspec.flags:
             kwargs[key] = True
         else:
-            raise OptionError(key)
+            raise exceptions.OptionError(key)
 
     while argv:
         arg = argv.shiftflag()
@@ -166,12 +166,12 @@ def parse_options(optionspec, argv):
         elif optionspec.accepts_files:
             files.append(argv.shiftarg())
         else:
-            raise NoFilesError(argv.shiftarg())
+            raise exceptions.NoFilesError(argv.shiftarg())
 
 
     # did they forget a required one?
     if required_options:
-        raise MissingOptionError(required_options)
+        raise exceptions.MissingOptionError(required_options)
 
     arguments = []
     # put them in the right order
