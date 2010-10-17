@@ -1,9 +1,10 @@
-class ControllerError(Exception): pass
-class ActionError(Exception): pass
-class OptionError(Exception): pass
-class OptionValueError(Exception): pass
-class NoFilesError(Exception): pass
-class MissingOptionError(Exception):
+class MVCLIException(Exception): pass
+class ControllerError(MVCLIException): pass
+class ActionError(MVCLIException): pass
+class OptionError(MVCLIException): pass
+class OptionValueError(MVCLIException): pass
+class NoFilesError(MVCLIException): pass
+class MissingOptionError(MVCLIException):
     def __str__(self):
         if isinstance(self.value, list):
             if len(self.value) == 1:
