@@ -6,12 +6,13 @@ class OptionValueError(MVCLIException): pass
 class NoFilesError(MVCLIException): pass
 class MissingOptionError(MVCLIException):
     def __str__(self):
-        if isinstance(self.value, list):
-            if len(self.value) == 1:
-                return self.value[0]
+        value = self.args[0]
+        if isinstance(value, list):
+            if len(value) == 1:
+                return value[0]
             else:
-                last_item = self.value.pop()
-                string = ', '.join(self.value)
+                last_item = value.pop()
+                string = ', '.join(value)
                 return string + ' and ' + last_item
         else:
             Exception.__str__()
