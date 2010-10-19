@@ -11,7 +11,7 @@ app.title = 'Awesome Title App'
 app.description = 'This is the awesome example application'
 
 app.config['default_controller'] = 'help'
-app.config['default_action'] = 'main'
+app.config['default_action'] = 'help'
 
 app.config['colors.title'] = 'green.blue'
 app.config['colors.header'] = 'yellow.red'
