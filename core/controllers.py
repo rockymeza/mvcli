@@ -7,10 +7,11 @@ Metadata = namedtuple('Metadata', 'description options examples')
 class Controller:
     actions = {}
 
-    def __init__(self, request, config, controllers):
-        self.request = request
-        self.config = config
-        self.controllers = controllers
+    def __init__(self, mvcli):
+        self.mvcli = mvcli
+        self.request = mvcli.request
+        self.config = mvcli.config
+        self.controllers = mvcli.controllers
     
     @property
     def title(self):

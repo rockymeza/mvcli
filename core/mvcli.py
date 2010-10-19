@@ -18,10 +18,10 @@ class MVCLI(object):
     def run(self, argv):
         argv = Argv(argv or [])
         self.filename = argv.pop(0)
-        request = delegator.route(argv, self.config)
+        self.request = delegator.route(argv, self.config)
 
         try:
-            return delegator.delegate(request, self.controllers, self.config)
+            return delegator.delegate(self)
         except exceptions.ControllerError as e:
             print '%s is not a valid command.' % e
         except exceptions.ActionError as e:

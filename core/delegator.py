@@ -15,13 +15,16 @@ def route(argv, config):
 
     return request
 
-def delegate(request, controllers, config):
+def delegate(mvcli):
     """
     Takes a Request object and instantiates the corresponding controller and
     calls a method based on the action
     """
+    request = mvcli.request
+    config = mvcli.config
+    controllers = mvcli.controllers
     if request['controller'] in controllers:
-        controller = controllers[request['controller']](request, config, controllers)
+        controller = controllers[request['controller']](mvcli)
         if request['action'] in controller.actions:
             action = getattr(controller, request['action'])
             optionspec = getoptionspec(action)
