@@ -74,3 +74,44 @@ class Controller:
     def pdefinition(self, key, value):
         print color('\t' + key, self.config['colors.key']) + color('\t\t' + value, self.config['colors.value'])
 
+
+class HelpController(Controller):
+    def main(self):
+
+    def help(self, *actions):
+        lines = self.action_help(*actions) if actions else self.controller_help()
+
+    def action_help(self, *actions):
+        for action in actions:
+            if action in self.actions:
+                self.ptitle(self.title)
+                meta = self.actions[action]
+                
+                if meta.description:
+                    self.pheader('DESCRIPTION:')
+                    self.pindent(meta.description)
+
+                if meta.options:
+                    self.pheader('OPTIONS:')
+                    for name, description in meta.options.items():
+                        self.pdefinition(name, description)
+
+                if meta.examples:
+                    self.pheader('EXAMPLES:')
+                    for example in meta.examples:
+                        self.pindent(example)
+            else:
+                raise exceptions.ActionError(action)    
+
+    def controller_help(self):
+        lines = []
+        self.ptitle(self.title)
+
+        
+        if hasattr(self, 'description'):
+            self.pheader('DESCRIPTION:')
+            self.pindent(self.description)
+        if self.actions:
+            self.pheader('SUBCOMMANDS:')
+            for name, method in self.actions.items():
+                self.pdefinition(name, self.actions[name].description)

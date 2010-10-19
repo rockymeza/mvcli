@@ -1,4 +1,5 @@
-from core.controller import Controller
+from core.controllers import Controller
+
 class Main(Controller):
     def main(self):
         print 'Hello World'
