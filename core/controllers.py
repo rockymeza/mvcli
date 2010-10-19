@@ -65,7 +65,8 @@ class Controller(object):
 
 class Help(Controller):
     title = 'Display this help message and exit'
-    def main(self):
+
+    def help(self):
         self.formatter.title(self.mvcli.title)
         
         if hasattr(self.mvcli, 'description'):
@@ -76,3 +77,9 @@ class Help(Controller):
             self.formatter.header('COMMANDS:')
             for controller, routes in self.controllers.reverse_items():
                 self.formatter.definition(', '.join(routes), controller.title)
+
+class Version(Controller):
+    title = 'Display the version and exit'
+
+    def help(self):
+        print self.mvcli.version
