@@ -1,5 +1,4 @@
 from core import introspection
-from core.formatter import color
 from collections import namedtuple
 import exceptions
 
@@ -12,6 +11,7 @@ class Controller:
         self.request = mvcli.request
         self.config = mvcli.config
         self.controllers = mvcli.controllers
+        self.formatter = mvcli.formatter
     
     @property
     def title(self):
@@ -32,90 +32,44 @@ class Controller:
     def action_help(self, *actions):
         for action in actions:
             if action in self.actions:
-                self.ptitle(self.title)
+                self.formatter.title(self.title)
                 meta = self.actions[action]
                 
                 if meta.description:
-                    self.pheader('DESCRIPTION:')
-                    self.pindent(meta.description)
+                    self.formatter.header('DESCRIPTION:')
+                    self.formatter.indent(meta.description)
 
                 if meta.options:
-                    self.pheader('OPTIONS:')
+                    self.formatter.header('OPTIONS:')
                     for name, description in meta.options.items():
-                        self.pdefinition(name, description)
+                        self.formatter.definition(name, description)
 
                 if meta.examples:
-                    self.pheader('EXAMPLES:')
+                    self.formatter.header('EXAMPLES:')
                     for example in meta.examples:
-                        self.pindent(example)
+                        self.formatter.indent(example)
             else:
                 raise exceptions.ActionError(action)    
 
     def controller_help(self):
-        lines = []
-        self.ptitle(self.title)
+        self.formatter.title(self.title)
 
-        
         if hasattr(self, 'description'):
-            self.pheader('DESCRIPTION:')
-            self.pindent(self.description)
+            self.formatter.header('DESCRIPTION:')
+            self.formatter.indent(self.description)
         if self.actions:
-            self.pheader('SUBCOMMANDS:')
+            self.formatter.header('SUBCOMMANDS:')
             for name, method in self.actions.items():
-                self.pdefinition(name, self.actions[name].description)
-
-    def ptitle(self, text):
-        print color(text, self.config['colors.title'])
-
-    def pheader(self, text):
-        print color(text, self.config['colors.header'])
-    
-    def pindent(self, text):
-        print '\t' + text
-
-    def pdefinition(self, key, value):
-        print color('\t' + key, self.config['colors.key']) + color('\t\t' + value, self.config['colors.value'])
+                self.formatter.definition(name, self.actions[name].description)
 
 
 class Help(Controller):
     def main(self):
-        for controller, routes in self.controllers.reverse_items():
-            self.pdefinition(', '.join(routes), controller.title)
-
-    def help(self, *actions):
-        lines = self.action_help(*actions) if actions else self.controller_help()
-
-    def action_help(self, *actions):
-        for action in actions:
-            if action in self.actions:
-                self.ptitle(self.title)
-                meta = self.actions[action]
-                
-                if meta.description:
-                    self.pheader('DESCRIPTION:')
-                    self.pindent(meta.description)
-
-                if meta.options:
-                    self.pheader('OPTIONS:')
-                    for name, description in meta.options.items():
-                        self.pdefinition(name, description)
-
-                if meta.examples:
-                    self.pheader('EXAMPLES:')
-                    for example in meta.examples:
-                        self.pindent(example)
-            else:
-                raise exceptions.ActionError(action)    
-
-    def controller_help(self):
-        lines = []
-        self.ptitle(self.title)
-
+        self.formatter.title(self.mvcli.title)
         
-        if hasattr(self, 'description'):
-            self.pheader('DESCRIPTION:')
-            self.pindent(self.description)
-        if self.actions:
-            self.pheader('SUBCOMMANDS:')
-            for name, method in self.actions.items():
-                self.pdefinition(name, self.actions[name].description)
+        if hasattr(self.mvcli, 'description'):
+            self.formatter.header('DESCRIPTION:')
+            self.formatter.indent(self.mvcli.description)
+
+        for controller, routes in self.controllers.reverse_items():
+            self.formatter.definition(', '.join(routes), controller.title)

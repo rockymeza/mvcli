@@ -1,4 +1,5 @@
 import config
+import formatter
 import request
 import delegator
 import exceptions
@@ -7,7 +8,16 @@ class MVCLI(object):
     def __init__(self):
         self.config = config.Config()
         self.controllers = ControllerDict()
+        self.formatter = formatter.Formatter(self)
         self.views = {}
+
+    @property
+    def title(self):
+        """
+        returns a default title
+        """
+        return 'App using MVCLI'
+        
 
     def add_controller(self, controller, *routes):
         for route in routes:
