@@ -21,7 +21,7 @@ def delegate(request, controllers, config):
     calls a method based on the action
     """
     if request['controller'] in controllers:
-        controller = controllers[request['controller']](request, config)
+        controller = controllers[request['controller']](request, config, controllers)
         if request['action'] in controller.actions:
             action = getattr(controller, request['action'])
             optionspec = getoptionspec(action)

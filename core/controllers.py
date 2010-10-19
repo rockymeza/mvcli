@@ -7,9 +7,10 @@ Metadata = namedtuple('Metadata', 'description options examples')
 class Controller:
     actions = {}
 
-    def __init__(self, request, config):
+    def __init__(self, request, config, controllers):
         self.request = request
         self.config = config
+        self.controllers = controllers
     
     @property
     def title(self):
@@ -75,8 +76,10 @@ class Controller:
         print color('\t' + key, self.config['colors.key']) + color('\t\t' + value, self.config['colors.value'])
 
 
-class HelpController(Controller):
+class Help(Controller):
     def main(self):
+        for controller, routes in self.controllers.reverse_items():
+            self.pdefinition(', '.join(routes), controller.title)
 
     def help(self, *actions):
         lines = self.action_help(*actions) if actions else self.controller_help()

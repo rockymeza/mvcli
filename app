@@ -4,6 +4,7 @@ import sys
 
 from core.mvcli import MVCLI
 import controller.main
+import core.controllers
 
 app = MVCLI()
 app.config['default_controller'] = 'main'
@@ -19,5 +20,11 @@ app.controllers['main'].metadata('Main Controller', 'This is the awesome main co
 app.controllers['main'].action('main', 'Prints Hello World')
 app.controllers['main'].action('foo', 'foo description', {'bar': 'bar description', 'baz': 'baz description', 'qux': 'qux description', 'quux': 'quux description'})
 app.controllers['main'].action('help', 'Display this screen and exit')
-app.run(sys.argv)
 
+app.add_controller(core.controllers.Help, 'help', 'h')
+app.controllers['help'].metadata('Help Controller', 'This is a base help controller')
+app.controllers['help'].action('main', 'Prints Help Screen')
+app.controllers['help'].action('foo', 'foo description', {'bar': 'bar description', 'baz': 'baz description', 'qux': 'qux description', 'quux': 'quux description'})
+app.controllers['help'].action('help', 'Display this screen and exit')
+
+app.run(sys.argv)
