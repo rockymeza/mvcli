@@ -7,7 +7,10 @@ import controller.main
 import core.controllers
 
 app = MVCLI()
-app.config['default_controller'] = 'main'
+app.title = 'Awesome Title App'
+app.description = 'This is the awesome example application'
+
+app.config['default_controller'] = 'help'
 app.config['default_action'] = 'main'
 
 app.config['colors.title'] = 'green.blue'
@@ -22,9 +25,6 @@ app.controllers['main'].action('foo', 'foo description', {'bar': 'bar descriptio
 app.controllers['main'].action('help', 'Display this screen and exit')
 
 app.add_controller(core.controllers.Help, 'help', 'h')
-app.controllers['help'].metadata('Help Controller', 'This is a base help controller')
 app.controllers['help'].action('main', 'Prints Help Screen')
-app.controllers['help'].action('foo', 'foo description', {'bar': 'bar description', 'baz': 'baz description', 'qux': 'qux description', 'quux': 'quux description'})
-app.controllers['help'].action('help', 'Display this screen and exit')
 
 app.run(sys.argv)

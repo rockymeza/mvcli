@@ -3,9 +3,7 @@ from collections import namedtuple
 import exceptions
 
 Metadata = namedtuple('Metadata', 'description options examples')
-class Controller:
-    actions = {}
-
+class Controller(object):
     def __init__(self, mvcli):
         self.mvcli = mvcli
         self.request = mvcli.request
@@ -24,6 +22,8 @@ class Controller:
 
     @classmethod
     def action(cls, name, description, options=None, examples=None):
+        if not hasattr(cls, 'actions'):
+            cls.actions = {}
         cls.actions[name] = Metadata(description, options or {}, examples or [])
 
     def help(self, *actions):
@@ -64,6 +64,7 @@ class Controller:
 
 
 class Help(Controller):
+    title = 'Display this help message and exit'
     def main(self):
         self.formatter.title(self.mvcli.title)
         
@@ -71,5 +72,7 @@ class Help(Controller):
             self.formatter.header('DESCRIPTION:')
             self.formatter.indent(self.mvcli.description)
 
-        for controller, routes in self.controllers.reverse_items():
-            self.formatter.definition(', '.join(routes), controller.title)
+        if self.controllers:
+            self.formatter.header('COMMANDS:')
+            for controller, routes in self.controllers.reverse_items():
+                self.formatter.definition(', '.join(routes), controller.title)
