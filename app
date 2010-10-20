@@ -1,34 +1,41 @@
 #!/usr/bin/env python
 
-import sys
+class App(Interface):
+    Help = BuiltinHelp
+    
+    description = 'Prints "Hello World!"'
+    def action(self, foo, bar=False, baz='hello'):
+        print 'Hello World!'
 
-from core.mvcli import MVCLI
-import controller.main
-import core.controllers
+    class generate(Interface):
+        description = 'Lists generation commands'
 
-app = MVCLI()
-app.title = 'Awesome Title App'
-app.description = 'This is the awesome example application'
-app.version = 'Awesome Title App v0.0.1 by Rocky and Gavin'
+        # does action need self?
+        def action(self):
+            print 'foo', 'bar', 'baz'
 
-app.config['default_controller'] = 'help'
-app.config['default_action'] = 'help'
+        # do you need to inherit from Interface?
+        class Foo:
+            def action(self): pass
+        class Bar:
+            def action(self): pass
+        class Baz:
+            def action(self): pass
 
-app.config['colors.title'] = 'green.blue'
-app.config['colors.header'] = 'yellow.red'
-app.config['colors.key'] = 'white.green'
-app.config['colors.value'] = 'yellow'
+    g = Generate
 
-app.add_controller(controller.main.Main, 'main', 'm')
-app.controllers['main'].metadata('Main Controller', 'This is the awesome main controller')
-app.controllers['main'].action('main', 'Prints Hello World')
-app.controllers['main'].action('foo', 'foo description', {'bar': 'bar description', 'baz': 'baz description', 'qux': 'qux description', 'quux': 'quux description'})
-app.controllers['main'].action('help', 'Display this screen and exit')
+    class Migrate:
+        controller = MigrateController
 
-app.add_controller(core.controllers.Help, 'help', 'h')
-app.controllers['help'].action('help', 'Prints Help Screen')
+    # ./app M
+    # not ./app m
+    M = Migrate
 
-app.add_controller(core.controllers.Version, 'version', 'v')
-app.controllers['version'].action('help', 'Prints version and exits')
+class MigrateController(Controller):
+    def foo(self, bar, baz): pass
 
-app.run(sys.argv)
+    def bar(self, bar=False):
+        print 'Hello from bar'
+
+
+
