@@ -4,6 +4,12 @@ import exceptions
 
 Metadata = namedtuple('Metadata', 'description options examples')
 class Controller(object):
+    class __metaclass__(type):
+        def __init__(cls, name, bases, dict):
+            super(type(cls), cls).__init__(name, bases, dict)
+            cls.actions = {}
+
+    actions = {}
     def __init__(self, mvcli):
         self.mvcli = mvcli
         self.request = mvcli.request
@@ -22,8 +28,6 @@ class Controller(object):
 
     @classmethod
     def action(cls, name, description, options=None, examples=None):
-        if not hasattr(cls, 'actions'):
-            cls.actions = {}
         cls.actions[name] = Metadata(description, options or {}, examples or [])
 
     def help(self, *actions):
