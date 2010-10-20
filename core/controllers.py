@@ -9,7 +9,6 @@ class Controller(object):
             super(type(cls), cls).__init__(name, bases, dict)
             cls.actions = {}
 
-    actions = {}
     def __init__(self, mvcli):
         self.mvcli = mvcli
         self.request = mvcli.request
