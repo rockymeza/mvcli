@@ -1,41 +1,39 @@
 #!/usr/bin/env python
+from core.interface import Interface, BuiltinHelp
+import controller.main
+import sys
 
 class App(Interface):
     Help = BuiltinHelp
     
     description = 'Prints "Hello World!"'
-    def action(self, foo, bar=False, baz='hello'):
+    def action(app):
         print 'Hello World!'
 
     class generate(Interface):
         description = 'Lists generation commands'
 
         # does action need self?
-        def action(self):
+        def action(app):
             print 'foo', 'bar', 'baz'
 
         # do you need to inherit from Interface?
         class Foo:
-            def action(self): pass
+            def action(app): pass
         class Bar:
-            def action(self): pass
+            def action(app): pass
         class Baz:
-            def action(self): pass
+            def action(app): pass
 
-    g = Generate
+    g = generate
 
     class Migrate:
-        controller = MigrateController
+        controller = controller.main.Main
 
     # ./app M
     # not ./app m
     M = Migrate
 
-class MigrateController(Controller):
-    def foo(self, bar, baz): pass
-
-    def bar(self, bar=False):
-        print 'Hello from bar'
 
 
-
+App().run(sys.argv)
