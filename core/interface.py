@@ -4,8 +4,12 @@ import delegator
 class InterfaceMeta(type):
     def __new__(cls, name, bases, dict):
         # All we do is make sure our classes inherit from Interface
-        if Interface not in bases:
-            bases = bases + (Interface,)
+        try:
+            if Interface not in bases:
+                bases = bases + (Interface,)
+        except NameError:
+            # Interface is not defined yet. Likely, we are creating it right now
+            pass
         return super(InterfaceMeta, cls).__new__(cls, name, bases, dict)
 
     def __init__(cls, name, bases, dict):
@@ -21,6 +25,7 @@ class InterfaceMeta(type):
             command.use_parent(cls)
 
 class Interface(object):
+    __metaclass__ = InterfaceMeta
     @classmethod
     def use_name(cls, name):
         """
@@ -67,6 +72,22 @@ class Interface(object):
         argv.pop(0)
 
     @classmethod
+    def get_sub_commands(cls):
+        """
+        Iterate through all possible subcommands,
+        including inherited ones, in MRO order.
+        """
+        for parent in cls.__mro__:
+            try:
+                s = parent.sub_commands
+            except AttributeError:
+                # Not an interface, skip.
+                pass
+            else:
+                for command in s:
+                    yield command
+
+    @classmethod
     def run(cls, argv):
         cls.consume(argv)
 
@@ -80,7 +101,7 @@ class Interface(object):
             pass
 
         # Next, check all the sub commands.
-        for command in cls.sub_commands:
+        for command in cls.get_sub_commands():
             if command.responds_to(argv):
                 return command.run(argv)
 

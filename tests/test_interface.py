@@ -16,10 +16,15 @@ def test_inherits_from_interface():
     class Bar(Interface):
         __metaclass__ = InterfaceMeta
 
+    class Baz(Interface):
+        pass
+
     assert isinstance(Foo, InterfaceMeta)
     assert isinstance(Foo(), Interface)
     assert isinstance(Bar, InterfaceMeta)
     assert isinstance(Bar(), Interface)
+    assert isinstance(Baz, InterfaceMeta) # Inheriting from Interface sets the metaclass
+    assert isinstance(Baz(), Interface)
 
 
 def test_subcommand_detection():
@@ -156,3 +161,37 @@ def test_default_action():
         __metaclass__ = InterfaceMeta
     Foo.run(['foo'])
 
+def test_doesnt_share():
+    class Foo(Interface):
+        class a(Interface):
+            pass
+    class Bar(Interface):
+        class b(Interface):
+            pass
+
+    assert Bar.sub_commands != Foo.sub_commands
+
+def test_inheritance():
+    global parent_foo_called
+    class Parent(Interface):
+        class Foo(Interface):
+            def action():
+                global parent_foo_called
+                parent_foo_called = True
+    class Foo(Parent):
+        class A(Interface):
+            pass
+    class Bar(Parent):
+        class B(Interface):
+            pass
+
+    Foo.run(['foo', 'foo'])
+    assert parent_foo_called == True
+    assert Foo.A in Foo.sub_commands
+    assert Bar.B not in Foo.sub_commands
+
+    parent_foo_called = False
+    Bar.run(['bar', 'foo'])
+    assert parent_foo_called == True
+    assert Bar.B in Bar.sub_commands
+    assert Foo.A not in Bar.sub_commands
