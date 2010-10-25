@@ -195,3 +195,19 @@ def test_inheritance():
     assert parent_foo_called == True
     assert Bar.B in Bar.sub_commands
     assert Foo.A not in Bar.sub_commands
+
+def test_help_does_something():
+    class Foo(Interface):
+        help = BuiltinHelp()
+        description = 'bar'
+        class Bar(Interface):
+            description = 'foo'
+            class Baz(Interface):
+                description = 'bomb'
+    Foo.run(['foo', 'help'])
+    Foo.run(['foo', 'help', 'bar'])
+    Foo.run(['foo', 'bar', 'help', 'baz'])
+    @nose.tools.raises(Exception)
+    def f():
+        Foo.run(['foo', 'baz', 'help'])
+    f()
