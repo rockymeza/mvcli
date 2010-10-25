@@ -7,3 +7,6 @@ class Main(Controller):
     def foo(self, bar, baz, qux, quux):
         print (bar, baz)
 
+    def bar(self, *args):
+        print (args)
+

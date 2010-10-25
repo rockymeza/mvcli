@@ -22,6 +22,7 @@ app.config['colors.value'] = 'yellow'
 app.add_controller(controller.main.Main, 'main', 'm')
 app.controllers['main'].metadata('Main Controller', 'This is the awesome main controller')
 app.controllers['main'].action('main', 'Prints Hello World')
+app.controllers['main'].action('bar', 'bar description')
 app.controllers['main'].action('foo', 'foo description', {'bar': 'bar description', 'baz': 'baz description', 'qux': 'qux description', 'quux': 'quux description'})
 app.controllers['main'].action('help', 'Display this screen and exit')
 
