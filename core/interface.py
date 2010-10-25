@@ -135,16 +135,16 @@ def slugify(str):
     return '-'.join([i.lower() for i in re.compile('[A-Z][a-z]*').findall(str)])
 
 
-__metaclass__ = InterfaceMeta
-class App:
-    help = BuiltinHelp()
-    description = 'an app'
-    class Foo:
-        description = 'foo: prints some stuff'
-        def action(*args):
-            print 'App.Foo.action', args
-        class Bar:
-            description = 'foo bar: asdf'
-import sys
-import copy
-App.run(copy.copy(sys.argv))
+#__metaclass__ = InterfaceMeta
+#class App:
+#    help = BuiltinHelp()
+#    description = 'an app'
+#    class Foo:
+#        description = 'foo: prints some stuff'
+#        def action(*args):
+#            print 'App.Foo.action', args
+#        class Bar:
+#            description = 'foo bar: asdf'
+#import sys
+#import copy
+#App.run(copy.copy(sys.argv))
