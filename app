@@ -1,39 +1,19 @@
 #!/usr/bin/env python
-from core.interface import Interface, BuiltinHelp
+from core.interface import Interface, InterfaceMeta, BuiltinHelp
 import controller.main
 import sys
 
-class App(Interface):
-    Help = BuiltinHelp
-    
-    description = 'Prints "Hello World!"'
-    def action(app):
-        print 'Hello World!'
+__metaclass__ = InterfaceMeta
+class App:
+    description = 'This is my app'
+    help = BuiltinHelp()
 
-    class generate(Interface):
-        description = 'Lists generation commands'
-
-        # does action need self?
-        def action(app):
-            print 'foo', 'bar', 'baz'
-
-        # do you need to inherit from Interface?
-        class Foo:
-            def action(app): pass
-        class Bar:
-            def action(app): pass
-        class Baz:
-            def action(app): pass
-
-    g = generate
-
-    class Migrate:
+    class M:
+        description = 'This is M'
         controller = controller.main.Main
 
-    # ./app M
-    # not ./app m
-    M = Migrate
+    @classmethod
+    def action(cls):
+        print cls.sub_commands
 
-
-
-App().run(sys.argv)
+App.run(sys.argv)
