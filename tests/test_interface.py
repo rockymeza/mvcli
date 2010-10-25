@@ -229,3 +229,18 @@ def test_rename():
     bar_action_called = False
     Foo.run(['foo', 'b'])
     assert bar_action_called
+
+@nose.tools.raises(NotImplementedError)
+def test_cant_use_class_for_storage():
+    class Foo(Interface):
+        def action(*args):
+            raise Exception
+    class Bar(Interface):
+        def action(*args):
+            raise NotImplementedError
+        f = Foo
+    class Baz(Interface):
+        blah = Foo
+    # this should call Bar.action, not Foo.action,
+    # because it's only called blah by Baz.
+    Bar.run(['bar', 'blah'])
