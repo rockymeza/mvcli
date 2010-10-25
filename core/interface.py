@@ -67,10 +67,7 @@ class Interface(object):
             for pat in cls.responds_to_res:
                 if pat.match(argv[0]):
                     return True
-        try:
-            return re.compile(cls.name).match(argv[0])
-        except AttributeError:
-            return False
+        return re.compile(cls.name).match(argv[0])
 
     @classmethod
     def consume(cls, argv):
