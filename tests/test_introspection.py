@@ -16,6 +16,8 @@ class Foo:
         pass
 
 def test_optionspec():
+    # no args
+    assert getoptionspec(lambda: 1) == Optionspec(required=[], optional=[], flags=[], accepts_files=False)
     # test for 1 required
     assert getoptionspec(lambda x: 1) == Optionspec(required=['x'], optional=[], flags=[], accepts_files=False)
     # test for 2 required, 1 optional
@@ -34,6 +36,7 @@ def test_optionspec():
     assert getoptionspec(Foo.f) == Optionspec(required=['x'], optional=['y'], flags=['z'], accepts_files=False)
 
 def test_formatargspec():
+    assert formatargspec(lambda: 1) == ([], {}, False)
     assert formatargspec(lambda x: 1) == (['x'], {}, False)
     assert formatargspec(lambda x, y: 1) == (['x', 'y'], {}, False)
     assert formatargspec(lambda x = False: 1) == ([], {'x': False}, False)
