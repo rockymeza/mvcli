@@ -105,10 +105,11 @@ def test_default_consume():
 def test_responds_to():
     class Foo:
         __metaclass__ = InterfaceMeta
-        name = re.compile('^blah$')
+        name = 'blah'
         class Bar:
             __metaclass__ = InterfaceMeta
             pass
+    print Foo.responds_to_res
     assert Foo.responds_to(['blah'])
     assert Foo.Bar.responds_to(['bar'])
 
@@ -211,3 +212,20 @@ def test_help_does_something():
     def f():
         Foo.run(['foo', 'baz', 'help'])
     f()
+
+def test_rename():
+    global bar_action_called
+    bar_action_called = False
+    class Foo(Interface):
+        class Bar(Interface):
+            def action():
+                global bar_action_called
+                bar_action_called = True
+        b = Bar
+
+    Foo.run(['foo', 'bar'])
+    assert bar_action_called
+
+    bar_action_called = False
+    Foo.run(['foo', 'b'])
+    assert bar_action_called

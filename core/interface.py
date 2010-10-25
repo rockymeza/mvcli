@@ -14,6 +14,7 @@ class InterfaceMeta(type):
 
     def __init__(cls, name, bases, dict):
         cls.sub_commands = []
+        cls.responds_to_res = []
         for (name, prop) in dict.items():
             if isinstance(prop, InterfaceMeta):
                 # Nested class. Treat it as a subcommand.
@@ -31,14 +32,14 @@ class Interface(object):
         """
         This is a hook to allow an Interface to learn
         what it is called in the outer class. By default,
-        that's what we'll use its sluged name to access
-        ourselves from the command line, unless name is
-        already overridden.
+        make sure we have a name attribute, and add the name
+        to the list of regexes we respond to.
         """
         try:
             cls.name
         except AttributeError:
-            cls.name = re.compile('^' + slugify(name) + '$')
+            cls.name = slugify(name)
+        cls.responds_to_res.append(re.compile('^' + slugify(name) + '$'))
 
     @classmethod
     def use_parent(cls, parent):
@@ -60,7 +61,13 @@ class Interface(object):
         By default, treat our name as a regex and match the first
         element of argv.
         """
-        return argv and cls.name.match(argv[0])
+        if not argv:
+            return False
+        else:
+            for pat in cls.responds_to_res:
+                if pat.match(argv[0]):
+                    return True
+        return re.compile(cls.name).match(argv[0])
 
     @classmethod
     def consume(cls, argv):
@@ -134,8 +141,8 @@ def BuiltinHelp():
             if not name:
                 print cls.parent.description
             for command in cls.parent.sub_commands:
-                if (not name) or command.name.match(name):
-                    print command.name.pattern, command.description
+                if (not name) or command.responds_to([name]):
+                    print command.name, command.description
 
         @classmethod
         def use_parent(cls, parent):
@@ -143,7 +150,7 @@ def BuiltinHelp():
             for command in parent.sub_commands:
                 if not isinstance(command, BuiltinHelpMeta):
                     sub_help = BuiltinHelp()
-                    command.add_command(cls.name.pattern, sub_help)
+                    command.add_command(cls.name, sub_help)
                     sub_help.use_parent(command)
     return Help
 
