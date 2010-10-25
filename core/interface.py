@@ -1,4 +1,5 @@
 import re
+import delegator
 
 class InterfaceMeta(type):
     def __new__(cls, name, bases, dict):
@@ -41,7 +42,9 @@ class Interface(object):
         for command in cls.sub_commands:
             if command.responds_to(argv):
                 return command.run(argv)
-        return cls.action(argv)
+        optionspec = delegator.getoptionspec(cls.action)
+        arguments = delegator.parse_options(optionspec, delegator.Argv(argv))
+        return cls.action(*arguments.args, **arguments.kwargs)
 
     @classmethod
     def use_parent(*args):
@@ -56,8 +59,8 @@ def BuiltinHelp():
 
         description = 'help <topic>: prints help about topic'
         @classmethod
-        def action(cls, argv):
-            name = argv and argv[0]
+        def action(cls, *names):
+            (name,) = names or [None]
             if not name:
                 print cls.parent.description
             for command in cls.parent.sub_commands:
@@ -78,6 +81,8 @@ def slugify(str):
     """
     camel case string -> slug
     """
+    if str.islower():
+        return str
     return '-'.join([i.lower() for i in re.compile('[A-Z][a-z]*').findall(str)])
 
 
