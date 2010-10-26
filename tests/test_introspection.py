@@ -14,6 +14,8 @@ def test_getactions():
 class Foo:
     def f(self, x, y = 'a.out', z = False):
         pass
+    def bar(*args): pass
+    def baz(self, *args): pass
 
 def test_optionspec():
     # no args
@@ -34,6 +36,7 @@ def test_optionspec():
     assert getoptionspec(lambda foo = None: 1) == Optionspec(required=[], optional=['foo'], flags=[], accepts_files=False)
     # test for method (strip self option)
     assert getoptionspec(Foo.f) == Optionspec(required=['x'], optional=['y'], flags=['z'], accepts_files=False)
+    assert getoptionspec(Foo.bar) == getoptionspec(Foo.baz)
 
 def test_formatargspec():
     assert formatargspec(lambda: 1) == ([], {}, False)
@@ -44,6 +47,7 @@ def test_formatargspec():
     assert formatargspec(lambda w, x, y = False, z = 'Hello': 1) == (['w', 'x'], {'y': False, 'z': 'Hello'}, False)
     assert formatargspec(lambda *args: 1) == ([], {}, True)
     assert formatargspec(lambda w, x, y = False, z = 'Hello', *args: 1) == (['w', 'x'], {'y': False, 'z': 'Hello'}, True)
+    assert formatargspec(Foo.bar) == formatargspec(Foo.baz)
 
 def test_getmeta():
     def foo():
