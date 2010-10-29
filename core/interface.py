@@ -1,5 +1,6 @@
 import re
 import delegator
+from util import slugify
 
 class InterfaceMeta(type):
     def __new__(cls, name, bases, dict):
@@ -14,48 +15,22 @@ class InterfaceMeta(type):
 
     def __init__(cls, name, bases, dict):
         cls.sub_commands = []
-        cls.responds_to_res = []
         for (name, prop) in dict.items():
             if isinstance(prop, InterfaceMeta):
-                # Nested class. Treat it as a subcommand.
-                cls.add_command(name, prop)
-            elif isinstance(prop, type(lambda:1)):
-                # A function. Make it a staticmethod
-                setattr(cls, name, staticmethod(prop))
-        for command in cls.sub_commands:
-            command.use_parent(cls)
+                # Nested class.
+                obj = prop(name, cls) # instatiate the interface
+                cls.sub_commands.append(obj)
+                setattr(cls, name, obj)
 
 class Interface(object):
     __metaclass__ = InterfaceMeta
-    @classmethod
-    def use_name(cls, name):
-        """
-        This is a hook to allow an Interface to learn
-        what it is called in the outer class. By default,
-        make sure we have a name attribute, and add the name
-        to the list of regexes we respond to.
-        """
-        try:
-            cls.name
-        except AttributeError:
-            cls.name = slugify(name)
-        cls.responds_to_res.append(re.compile('^' + slugify(name) + '$'))
+    def __init__(self, name = None, parent = None):
+        self.parent = parent
+        self.name = name
+        if name:
+            self.name_re = re.compile('^%s$' % slugify(name))
 
-    @classmethod
-    def use_parent(cls, parent):
-        """
-        This is a hook to allow an Interface to access its parent,
-        in order to allow magic. By default, we don't do anything.
-        """
-        pass
-
-    @classmethod
-    def add_command(cls, name, command):
-        command.use_name(name)
-        cls.sub_commands.append(command)
-
-    @classmethod
-    def responds_to(cls, argv):
+    def responds_to(self, argv):
         """
         True if we want to handle this request, False otherwise.
         By default, treat our name as a regex and match the first
@@ -64,13 +39,9 @@ class Interface(object):
         if not argv:
             return False
         else:
-            for pat in cls.responds_to_res:
-                if pat.match(argv[0]):
-                    return True
-        return re.compile(cls.name).match(argv[0])
+            return self.name_re.match(argv[0])
 
-    @classmethod
-    def consume(cls, argv):
+    def consume(self, argv):
         """
         How much of argv did we actually use?
         With the default responds_to, we used the
@@ -94,13 +65,12 @@ class Interface(object):
                 for command in s:
                     yield command
 
-    @classmethod
-    def run(cls, argv):
-        cls.consume(argv)
+    def run(self, argv):
+        self.consume(argv)
 
         # Offer to let the controller handle it.
         try:
-            return cls.controller.run(argv)
+            return self.controller.run(argv)
         except (AttributeError, NotImplementedError):
             # Either we don't have a controller,
             # or the controller doesn't want to handle
@@ -108,71 +78,55 @@ class Interface(object):
             pass
 
         # Next, check all the sub commands.
-        for command in cls.get_sub_commands():
+        for command in self.get_sub_commands():
             if command.responds_to(argv):
                 return command.run(argv)
 
         # No subcommands respond to this request.
         # The action method is our last resort.
-        optionspec = delegator.getoptionspec(cls.action)
+        optionspec = delegator.getoptionspec(self.action)
         arguments = delegator.parse_options(optionspec, delegator.Argv(argv))
-        return cls.action(*arguments.args, **arguments.kwargs)
+        return self.action(*arguments.args, **arguments.kwargs)
 
-    @classmethod
-    def action(cls):
+    def action(self):
         """
         If our subclass lets a request fall through to action,
         but doesn't provide their own, we have no way of handling
         the request.
         """
         raise NotImplementedError
+    
+    def __repr__(self):
+        return 'Interface_%s(%s, %s)' % (self.__class__.__name__, self.name, self.parent)
 
-class BuiltinHelpMeta(InterfaceMeta):
-    pass
+class BuiltinHelp(Interface):
+    def __init__(self, *args, **kwargs):
+        super(BuiltinHelp, self).__init__(*args, **kwargs)
+        for command in self.parent.sub_commands:
+            if not isinstance(command, BuiltinHelp):
+                sub_help = BuiltinHelp(self.name, command)
+                command.sub_commands.append(sub_help)
 
-def BuiltinHelp():
-    class Help:
-        __metaclass__ = BuiltinHelpMeta
-
-        description = 'help <topic>: prints help about topic'
-        @classmethod
-        def action(cls, *names):
-            (name,) = names or [None]
-            if not name:
-                print cls.parent.description
-            for command in cls.parent.sub_commands:
-                if (not name) or command.responds_to([name]):
-                    print command.name, command.description
-
-        @classmethod
-        def use_parent(cls, parent):
-            cls.parent = parent
-            for command in parent.sub_commands:
-                if not isinstance(command, BuiltinHelpMeta):
-                    sub_help = BuiltinHelp()
-                    command.add_command(cls.name, sub_help)
-                    sub_help.use_parent(command)
-    return Help
-
-def slugify(str):
-    """
-    camel case string -> slug
-    """
-    if str.islower():
-        return str
-    return '-'.join([i.lower() for i in re.compile('[A-Z][a-z]*').findall(str)])
+    description = 'help <topic>: prints help about topic'
+    def action(self, *names):
+        (name,) = names or [None]
+        if not name:
+            print self.parent.description
+        for command in self.parent.sub_commands:
+            if (not name) or command.responds_to([name]):
+                print command.name, command.description
 
 
 #__metaclass__ = InterfaceMeta
 #class App:
-#    help = BuiltinHelp()
+#    help = BuiltinHelp
 #    description = 'an app'
 #    class Foo:
 #        description = 'foo: prints some stuff'
-#        def action(*args):
+#        def action(self, *args):
 #            print 'App.Foo.action', args
 #        class Bar:
 #            description = 'foo bar: asdf'
 #import sys
 #import copy
-#App.run(copy.copy(sys.argv))
+#App().run(copy.copy(sys.argv))
