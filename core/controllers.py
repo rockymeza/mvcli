@@ -1,22 +1,18 @@
 from core import introspection
+from core.interface import Interface
 from collections import namedtuple
 import delegator
 import exceptions
 
 Metadata = namedtuple('Metadata', 'description options examples')
-class Controller(object):
-    class __metaclass__(type):
-        def __init__(cls, name, bases, dict):
-            super(type(cls), cls).__init__(name, bases, dict)
-            cls.actions = {}
-
-    def __init__(self):
+class Controller(Interface):
+#    def __init__(self):
 #        self.mvcli = mvcli
 #        self.request = mvcli.request
 #        self.config = mvcli.config
 #        self.controllers = mvcli.controllers
 #        self.formatter = mvcli.formatter
-        pass
+#        pass
     
 #    @property
 #    def title(self):
@@ -31,10 +27,9 @@ class Controller(object):
 #    def action(cls, name, description, options=None, examples=None):
 #        cls.actions[name] = Metadata(description, options or {}, examples or [])
 
-    @classmethod
-    def run(cls, argv):
+    def run(self, argv):
         argv = delegator.Argv(argv)
-        actions = introspection.getactions(cls)
+        actions = introspection.getactions(self)
         try:
             action = argv.shiftarg()
         except(IndexError):
@@ -43,8 +38,7 @@ class Controller(object):
             raise NotImplementedError
         if action:
             if action in actions:
-                c = cls()
-                a = getattr(c, action)
+                a = getattr(self, action)
                 optionspec = delegator.getoptionsepc(a)
                 arguments = delegator.parse_options(optionspec, argv)
                 a(*arguments.args, **arguments.kwargs)

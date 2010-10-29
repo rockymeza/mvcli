@@ -6,7 +6,7 @@ import sys
 __metaclass__ = InterfaceMeta
 class App:
     description = 'This is my app'
-    help = BuiltinHelp()
+    help = BuiltinHelp
 
     class M:
         description = 'This is M'
@@ -16,4 +16,4 @@ class App:
     def action(cls):
         print cls.sub_commands
 
-App.run(sys.argv)
+App().run(sys.argv)
