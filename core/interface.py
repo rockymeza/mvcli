@@ -1,5 +1,6 @@
 import re
 import delegator
+import exceptions
 from util import slugify
 
 class InterfaceMeta(type):
@@ -27,6 +28,7 @@ class Interface(object):
     def __init__(self, name = None, parent = None):
         self.parent = parent
         self.name = name
+        self.settings = {}
         if name:
             self.name_re = re.compile('^%s$' % slugify(name))
 
@@ -65,28 +67,36 @@ class Interface(object):
                 for command in s:
                     yield command
 
+    def start(self, argv):
+        try:
+            argv = delegator.Argv(argv)
+
+            return self.run(argv)
+        except exceptions.ControllerError as e:
+            print '%s is not a valid command.' % e
+        except exceptions.ActionError as e:
+            print '%s is not a valid subcommand.' % e
+        except exceptions.OptionError as e:
+            print '%s is not a valid option.' % e
+        except exceptions.NoFilesError:
+            print 'This command does not accept files.'
+        except exceptions.MissingOptionError as e:
+            print 'The option(s) %s is/are required.' % e
+
     def run(self, argv):
         self.consume(argv)
 
-        # Offer to let the controller handle it.
-        try:
-            return self.controller.run(argv)
-        except (AttributeError, NotImplementedError):
-            # Either we don't have a controller,
-            # or the controller doesn't want to handle
-            # the request. Keep going.
-            pass
+        self.prepare()
 
         # Next, check all the sub commands.
         for command in self.get_sub_commands():
             if command.responds_to(argv):
+                command.settings = self.settings
                 return command.run(argv)
 
         # No subcommands respond to this request.
         # The action method is our last resort.
-        optionspec = delegator.getoptionspec(self.action)
-        arguments = delegator.parse_options(optionspec, delegator.Argv(argv))
-        return self.action(*arguments.args, **arguments.kwargs)
+        return delegator.call_with_args(self.action, argv)
 
     def action(self):
         """
@@ -95,6 +105,9 @@ class Interface(object):
         the request.
         """
         raise NotImplementedError
+
+    def prepare(self):
+        pass
     
     def __repr__(self):
         return 'Interface_%s(%s, %s)' % (self.__class__.__name__, self.name, self.parent)
@@ -113,9 +126,7 @@ class BuiltinHelp(Interface):
         if not name:
             print self.parent.description
         for command in self.parent.sub_commands:
-            if (not name) or command.responds_to([name]):
-                print command.name, command.description
-
+            if (not name) or command.responds_to([name]): print command.name, command.description 
 
 #__metaclass__ = InterfaceMeta
 #class App:

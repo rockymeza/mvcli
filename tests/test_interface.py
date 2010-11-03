@@ -2,6 +2,7 @@ import nose
 import sys
 sys.path.extend(['..', '.'])
 from core.interface import *
+from core import delegator
 
 def test_inherits_from_interface():
     class Foo:
@@ -80,38 +81,35 @@ def test_run_simple():
                 global bar_action_called
                 bar_action_called = args
 
-    Foo().run(['foo'])
+    Foo().run(delegator.Argv(['foo']))
     assert action_called
     assert not bar_action_called
 
     bar_action_called = False
     action_called = False
-    Foo().run(['foo', 'bar'])
+    Foo().run(delegator.Argv(['foo', 'bar']))
     assert not action_called
     assert bar_action_called == ()
 
 def test_run_controller():
     global controller_called
     controller_called = False
-    class Foo:
+    class Controller(Interface):
+        def run(*args):
+            global controller_called
+            controller_called = True
+    class Foo(Controller):
         __metaclass__ = InterfaceMeta
         def action():
             pass
-        class Sub:
-            __metaclass__ = InterfaceMeta
-        class controller:
-            @classmethod
-            def run(*args):
-                global controller_called
-                controller_called = True
-    Foo().run(['foo'])
+    Foo().run(delegator.Argv(['foo']))
     assert controller_called == True
 
 @nose.tools.raises(NotImplementedError)
 def test_default_action():
     class Foo:
         __metaclass__ = InterfaceMeta
-    Foo().run(['foo'])
+    Foo().run(delegator.Argv(['foo']))
 
 def test_doesnt_share():
     class Foo(Interface):
@@ -138,13 +136,13 @@ def test_inheritance():
         class B(Interface):
             pass
 
-    Foo().run(['foo', 'foo'])
+    Foo().run(delegator.Argv(['foo', 'foo']))
     assert parent_foo_called == True
     assert Foo.A in Foo.sub_commands
     assert Bar.B not in Foo.sub_commands
 
     parent_foo_called = False
-    Bar().run(['bar', 'foo'])
+    Bar().run(delegator.Argv(['bar', 'foo']))
     assert parent_foo_called == True
     assert Bar.B in Bar.sub_commands
     assert Foo.A not in Bar.sub_commands
@@ -157,12 +155,12 @@ def test_help_does_something():
             description = 'foo'
             class Baz(Interface):
                 description = 'bomb'
-    Foo().run(['foo', 'help'])
-    Foo().run(['foo', 'help', 'bar'])
-    Foo().run(['foo', 'bar', 'help', 'baz'])
+    Foo().run(delegator.Argv(['foo', 'help']))
+    Foo().run(delegator.Argv(['foo', 'help', 'bar']))
+    Foo().run(delegator.Argv(['foo', 'bar', 'help', 'baz']))
     @nose.tools.raises(Exception)
     def f():
-        Foo.run(['foo', 'baz', 'help'])
+        Foo.run(delegator.Argv(['foo', 'baz', 'help']))
     f()
 
 def test_rename():
@@ -175,11 +173,11 @@ def test_rename():
                 bar_action_called = True
         b = Bar
 
-    Foo().run(['foo', 'bar'])
+    Foo().run(delegator.Argv(['foo', 'bar']))
     assert bar_action_called
 
     bar_action_called = False
-    Foo().run(['foo', 'b'])
+    Foo().run(delegator.Argv(['foo', 'b']))
     assert bar_action_called
 
 @nose.tools.raises(NotImplementedError)
@@ -197,4 +195,4 @@ def test_cant_use_class_for_storage():
         blah = Foo
     # this should call Bar.action, not Foo.action,
     # because it's only called blah by Baz.
-    Bar().run(['bar', 'blah'])
+    Bar().run(delegator.Argv(['bar', 'blah']))

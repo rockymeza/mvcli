@@ -28,80 +28,53 @@ class Controller(Interface):
 #        cls.actions[name] = Metadata(description, options or {}, examples or [])
 
     def run(self, argv):
-        argv = delegator.Argv(argv)
-        actions = introspection.getactions(self)
-        try:
-            action = argv.shiftarg()
-        except(IndexError):
-            # no action name
-            # I don't know what to do
-            raise NotImplementedError
-        if action:
-            if action in actions:
-                a = getattr(self, action)
-                optionspec = delegator.getoptionsepc(a)
-                arguments = delegator.parse_options(optionspec, argv)
-                a(*arguments.args, **arguments.kwargs)
-            else:
-                # bad action name
-                pass
-        else:
-            raise NotImplementedError
+        self.consume(argv)
 
-#    def help(self, *actions):
-#        lines = self.action_help(*actions) if actions else self.controller_help()
-#
-#    def action_help(self, *actions):
-#        for action in actions:
-#            if action in self.actions:
-#                self.formatter.title(self.title)
-#                meta = self.actions[action]
-#                
-#                if meta.description:
-#                    self.formatter.header('DESCRIPTION:')
-#                    self.formatter.indent(meta.description)
-#
-#                if meta.options:
-#                    self.formatter.header('OPTIONS:')
-#                    for name, description in meta.options.items():
-#                        self.formatter.definition(name, description)
-#
-#                if meta.examples:
-#                    self.formatter.header('EXAMPLES:')
-#                    for example in meta.examples:
-#                        self.formatter.indent(example)
-#            else:
-#                raise exceptions.ActionError(action)    
-#
-#    def controller_help(self):
-#        self.formatter.title(self.title)
-#
-#        if hasattr(self, 'description'):
-#            self.formatter.header('DESCRIPTION:')
-#            self.formatter.indent(self.description)
-#        if self.actions:
-#            self.formatter.header('SUBCOMMANDS:')
-#            for name, method in self.actions.items():
-#                self.formatter.definition(name, self.actions[name].description)
-#
-#
-#class Help(Controller):
-#    title = 'Display this help message and exit'
-#
-#    def help(self):
-#        self.formatter.title(self.mvcli.title)
-#        
-#        if hasattr(self.mvcli, 'description'):
-#            self.formatter.header('DESCRIPTION:')
-#            self.formatter.indent(self.mvcli.description)
-#
-#        if self.controllers:
-#            self.formatter.header('COMMANDS:')
-#            for controller, routes in self.controllers.reverse_items():
-#                self.formatter.definition(', '.join(routes), controller.title)
-#
-#class Version(Controller):
-#    title = 'Display the version and exit'
-#
-#    def help(self):
-#        print self.mvcli.version
+        actions = introspection.getactions(self)
+        action = argv.shiftarg()
+        if action in actions:
+            a = getattr(self, action)
+        else:
+            # bad action name
+            a = self.main
+        delegator.call_with_args(a, argv)
+
+    def main(self):
+        raise exceptions.ActionError
+
+    def help(self, *actions):
+        lines = self.action_help(*actions) if actions else self.controller_help()
+
+    def action_help(self, *actions):
+        for action in actions:
+            if action in self.actions:
+                self.formatter.title(self.title)
+                meta = self.actions[action]
+                
+                if meta.description:
+                    self.formatter.header('DESCRIPTION:')
+                    self.formatter.indent(meta.description)
+
+                if meta.options:
+                    self.formatter.header('OPTIONS:')
+                    for name, description in meta.options.items():
+                        self.formatter.definition(name, description)
+
+                if meta.examples:
+                    self.formatter.header('EXAMPLES:')
+                    for example in meta.examples:
+                        self.formatter.indent(example)
+            else:
+                raise exceptions.ActionError(action)    
+
+    def controller_help(self):
+        self.formatter.title(self.title)
+
+        if hasattr(self, 'description'):
+            self.formatter.header('DESCRIPTION:')
+            self.formatter.indent(self.description)
+        if self.actions:
+            self.formatter.header('SUBCOMMANDS:')
+            for name, method in self.actions.items():
+                self.formatter.definition(name, self.actions[name].description)
+

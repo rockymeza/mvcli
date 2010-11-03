@@ -8,12 +8,11 @@ class App:
     description = 'This is my app'
     help = BuiltinHelp
 
-    class M:
+    class M(controller.main.Main):
         description = 'This is M'
-        controller = controller.main.Main
 
     @classmethod
     def action(cls):
         print cls.sub_commands
 
-App().run(sys.argv)
+App().start(sys.argv)

@@ -15,6 +15,14 @@ def route(argv, config):
 
     return request
 
+def call_with_args(action, argv):
+    try:
+        return action.call_with_args(argv)
+    except AttributeError:
+        optionspec = getoptionspec(action)
+        arguments = parse_options(optionspec, argv)
+        return action(*arguments.args, **arguments.kwargs)
+
 def delegate(mvcli):
     """
     Takes a Request object and instantiates the corresponding controller and
@@ -188,9 +196,9 @@ def parse_options(optionspec, argv):
 
 class Argv(list):
     def shiftflag(self):
-        if self[0].startswith('-'):
+        if self and self[0].startswith('-'):
             return self.pop(0)
 
     def shiftarg(self):
-        if not self[0].startswith('-'):
+        if self and not self[0].startswith('-'):
             return self.pop(0)

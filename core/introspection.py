@@ -10,7 +10,7 @@ def getactions(controller):
     actions = {}
     members = inspect.getmembers(controller)
     for name, member in members:
-        if inspect.ismethod(member) and not name.startswith('__'):
+        if hasattr(member, 'is_action'):
             actions[name] = member
     return actions
 
@@ -36,10 +36,11 @@ def formatargspec(function):
     """
     (required_options, optional_options, accepts_files)
     """
+    print function
     argspec = inspect.getargspec(function)
 
     # if is method, throw away self argument
-    if inspect.ismethod(function):
+    if inspect.ismethod(function) and argspec.args:
         argspec.args.pop(0)
 
     optional_options = {}
