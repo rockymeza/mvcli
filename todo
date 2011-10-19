@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+import copy
+
+def deriveargs(func):
+    """
+    Figure out what arguments a function takes.
+
+    Return a tuple of *args and **kwargs
+    """
+    raise NotImplemented
+
+def extractargs(argdef, argv):
+    """
+    Uses an argument definition to extract arguments out of argv
+    """
+    raise NotImplemented
+
+
+class MVCLIMeta(type):
+    def __new__(cls, name, bases, dict):
+        obj = super(MVCLIMeta, cls).__new__(cls, name, bases, dict)
+        obj._mvcli = {
+                'methods': [],
+                }
+        for key, value in dict.iteritems():
+            if not key.startswith('_'):
+                if hasattr(value, '__call__'):
+                    obj._mvcli['methods'].append((key, value.__doc__))
+        return obj
+
+class MVCLIBase(object):
+    __metaclass__ = MVCLIMeta
+
+    def run(self, argv):
+        argv = self.argv = copy.copy(argv)
+        self.program_name = argv.pop(0)
+        try:
+            command = argv.pop(0)
+            getattr(self, command)()
+        except IndexError:
+            self.help()
+            
+    def help(self):
+        print str(self.__doc__)
+
+        methods = self._mvcli['methods']
+        if methods:
+            print 'Commands:'
+            for method, description in methods:
+                print '\t', method, '\t',description
+
+
+class Todo(MVCLIBase):
+    def add(self, name, description):
+        "Add a task"
+        pass
+
+    def remove(self, id):
+        "Remove a task"
+        print id
+
+    def list(self):
+        "List all tasks"
+        pass
+
+
+if __name__ == '__main__':
+    import sys
+
+    Todo().run(sys.argv)
